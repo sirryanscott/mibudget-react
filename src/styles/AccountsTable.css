@@ -1,0 +1,61 @@
+/* src/components/AccountTable.css */
+.account-container {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.account-item {
+  flex: 1 1 auto;
+  border: 1px solid #6c757d; /* Gray Border */
+  margin: 10px;
+  border-radius: 5px;
+background-color: #ffffff; /* White Background */
+  box-sizing: border-box;
+}
+
+.account-item h3 {
+  margin: 0 0 0px;
+  font-size: 1em;
+   color: #ffffff; /* Primary Blue Color */
+   background-color: #007bff;
+   padding:3px;
+}
+
+.account-item p {
+  margin: 5px 0;
+  font-size: .8em;
+  color: #6c757d; /* Gray Text */
+}
+
+.account-item p.negative {
+  color: #ff0000; /* Red color for negative values */
+}
+
+.button-container {
+  width: 100%;
+  background-color: #ffffff; /* White background */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Add shadow for depth */
+}
+
+button {
+  margin-bottom: 10px;
+  padding: 8px 16px;
+  font-size: 1em;
+  border: none;
+  border-radius: 4px;
+  background-color: #007bff; /* Primary Blue Color */
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+button:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+}
+

@@ -1,0 +1,73 @@
+h1 {
+  margin-bottom: 0px;
+}
+.main-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.budget-section {
+  flex: 1;
+  padding: 10px;
+}
+
+.transactions-section {
+  flex: 2;
+  padding: 10px;
+}
+
+.budgets-container {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow-y: auto;
+}
+
+.budget-item {
+  flex: 1 1 auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  box-sizing: border-box;
+}
+
+tr:nth-child(odd) {
+  background-color: #f9f9f9;
+  background-color: #e9ecef; /* Very Light Gray */
+}
+
+tr:nth-child(even) {
+  background-color: #e0e0e0;
+  background-color: #ffffff; /* White */
+}
+
+h3 {
+    margin-top: 0px;
+}
+
+table {
+   background-color: #ffffff; /* White Background */
+}
+
+th, td {
+  padding: 5px;
+  text-align: left;
+   font-size: .7em;
+}
+
+th {
+  background-color: #f0f0f0; /* Light Gray Background */
+  font-size: .9em;
+}
+
+td.negative {
+  color: #ff0000; /* Red color for negative values */
+}
+
+.center-text {
+    text-align: center;
+    width: 15px;
+}

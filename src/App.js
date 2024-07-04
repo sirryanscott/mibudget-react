@@ -1,23 +1,14 @@
-import logo from './logo.svg';
 import './App.css';
+import AccountsTable from './components/AccountsTable';
+import BudgetAndTransactions from './components/BudgetAndTransactions';
+
+let accounts = [{"name":"Checking", "pendingBalance":1000, "currentBalance":3500, "balanceAfterPending":2500},{"name":"Savings", "pendingBalance":1000, "currentBalance":3500, "balanceAfterPending":2500},{"name":"Citi", "pendingBalance":1000, "currentBalance":3500, "balanceAfterPending":2500},{"name":"Emergency Fund", "pendingBalance":500, "currentBalance":100000, "balanceAfterPending":950000},{"name":"Preschool", "pendingBalance":1000, "currentBalance":3500, "balanceAfterPending":2500},{"name":"3rd Paycheck", "pendingBalance":1000, "currentBalance":3500, "balanceAfterPending":2500},{"name":"Next Month Expenses", "pendingBalance":1000, "currentBalance":3500, "balanceAfterPending":-2500},]
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <AccountsTable accounts={accounts}/>
+      <BudgetAndTransactions/>
     </div>
   );
 }
