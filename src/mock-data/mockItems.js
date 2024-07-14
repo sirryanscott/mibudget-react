@@ -5,18 +5,9 @@ const DBItems = [
         commonName: "Whole Milk",
         budgetCategory: "Groceries",
         taxCategory: "Food",
-        taxRate: .0735,
         merchant: {
             id: 1001,
             name: "Costco",
-            zipcode: 84045,
-            taxRates: [
-                {
-                    Food: .03,
-                    UseTax: .0735,
-                    Restaurant: .0835,
-                }
-            ]
         }
     },
     {
@@ -25,18 +16,9 @@ const DBItems = [
         commonName: "Cheddar Cheese",
         budgetCategory: "Groceries",
         taxCategory: "Food",
-        taxRate: .03,
         merchant: {
             id: 1001,
             name: "Costco",
-            zipcode: 84043,
-            taxRates: [
-                {
-                    Food: .03,
-                    UseTax: .0745,
-                    Restaurant: .0845,
-                }
-            ]
         }
     },
     {
@@ -45,18 +27,9 @@ const DBItems = [
         commonName: "Napkins",
         budgetCategory: "Household Supplies",
         taxCategory: "Use Tax",
-        taxRate: .0735,
         merchant: {
             id: 1003,
             name: "Walmart",
-            zipcode: 84045,
-            taxRates: [
-                {
-                    Food: .03,
-                    UseTax: .0735,
-                    Restaurant: .0835,
-                }
-            ]
         }
     },
 ]

@@ -2,6 +2,7 @@
 //   Edit item
 //   Delete item
 // I don't want different merchants per zipcode, but rather a dropdown of tax rates by zip code. that way it doesn't matter what merchant it is
+// adding common name not saving when addint a item
 
 import {useState} from "react"
 import { formatCurrency } from "../utils/FormatCurrency"
@@ -9,15 +10,30 @@ import CreatableSelect from 'react-select/creatable';
 import "../styles/NewTransactionModal.css"
 import initialItems from "../mock-data/mockItems";
 import initialMerchants from "../mock-data/mockMerchants";
+import initialAccounts from "../mock-data/mockAccounts";
+import InitialZipCodesAndRates from "../mock-data/ZipCodes";
+import TaxCategories from "../mock-data/taxCategories";
+import BudgetCategories from "../mock-data/budgetCategories";
+import CommonNames from "../mock-data/commonNames";
 
 function NewTransactionModal({transactions}){
     const [items, setItems] = useState([])
     const [allItems, setAllItems] = useState(initialItems);
     const [selectableItems, setSelectableItems] = useState(initialItems);
+    const [selectableZipCodes, setSelectableZipCodes] = useState(InitialZipCodesAndRates);
+    const [selectedZipCode, setSelectedZipCode] = useState({label:84005, value:{zipCode:84005,taxRegionName:"UTAH CO TR",taxRate:0.0735}})
+    const [selectedTaxCategory, setSelectedTaxCategory] = useState({label:"Select Tax Category", value:{}})
+    const [selectedBudgetCategory, setSelectedBudgetCategory] = useState({label:"Select or Create Budget Category", value:{}})
+    const [selectedCommonName, setSelectedCommonName] = useState({label:"Select or Create Common Name", value:{}})
+    const [taxCategories, setTaxCategories] = useState(TaxCategories)
+    const [budgetCategories, setBudgetCategories] = useState(BudgetCategories)
+    const [commonNames, setCommonNames] = useState(CommonNames)
     const [allMerchants, setAllMerchants] = useState(initialMerchants);
+    const [allAccounts, setAllAccounts] = useState(initialAccounts);
     const [transactionDate, setTransactionDate] = useState('')
     const [selectedItem, setSelectedItem] = useState({label:"Select or Create Item", value:{}})
     const [selectedMerchant, setSelectedMerchant] = useState({label:"Select or Create Merchant", value:{}})
+    const [selectedAccount, setSelectedAccount] = useState({label:"Select or Create Account", value:{}})
     const [merchant, setMerchant] = useState('')
     const [account, setAccount] = useState('')
     const [zipcode, setZipcode] = useState('')
@@ -25,6 +41,9 @@ function NewTransactionModal({transactions}){
     const [itemCommonName, setItemCommonName] = useState('')
     const [itemUnitPrice, setItemUnitPrice] = useState('')
     const [itemDiscount, setItemDiscount] = useState('')
+    const [itemSubtotal, setItemSubtotal] = useState('')
+    const [itemTotal, setItemTotal] = useState('')
+    const [itemTaxTotal, setItemTaxTotal] = useState('')
     const [itemQuantity, setItemQuantity] = useState('')
     const [itemTaxCategory, setItemTaxCategory] = useState('')
     const [itemBudgetCategory, setItemBudgetCategory] = useState('')
@@ -40,33 +59,26 @@ function NewTransactionModal({transactions}){
 
     const addItem = (event) => {
       event.preventDefault()
-      let unitPrice = -parseFloat(event.target.unitPrice.value) || 0
 
       let quantity = parseFloat(event.target.quantity.value) || 1
       if (quantity === ''){
           quantity = 1
       }
 
-      let discount = parseFloat(event.target.discount.value) || 0
-      let subtotal = (unitPrice + discount) * quantity
-      let taxRate = itemTaxRate
-      let taxAmount = subtotal * taxRate
-      let total = subtotal + taxAmount
-      
       setTransactionDate(event.target.date.value)
-      setAccount(event.target.account.value)
+      setAccount(selectedAccount.value.name)
 
       let item = {
         itemName: selectedItem.value.itemName,
         commonName: itemCommonName,
-        unitPrice: unitPrice,
+        unitPrice: -parseFloat(itemUnitPrice),
         quantity: quantity,
-        discount: discount,
-        subtotal: subtotal,
+        discount: itemDiscount,
+        subtotal: -parseFloat(itemSubtotal),
         taxCategory: itemTaxCategory,
-        taxRate: taxRate,
-        taxAmount: taxAmount,
-        total: total,
+        taxRate: itemTaxRate,
+        taxAmount: -parseFloat(itemTaxTotal),
+        total: -parseFloat(itemTotal),
         budgetCategory: itemBudgetCategory,
         merchant: {id: selectedMerchant.value.id}
       }
@@ -83,19 +95,61 @@ function NewTransactionModal({transactions}){
       setShouldCreateNewItem(false)
     }
 
-    const handleChange = (selectedOption) => {
+    const calculateTotals = (unitPrice, taxRate, quantity, discount) => {
+        if(quantity === undefined || quantity === ""){
+            quantity = 1
+        }
+        if(discount === undefined || discount === ""){
+            discount = 0
+        }
+
+        let subtotal = ((unitPrice - discount) * quantity).toFixed(2)
+        let taxAmount = (subtotal * taxRate).toFixed(2)
+        let total = parseFloat(subtotal) + parseFloat(taxAmount)
+
+        setItemSubtotal(subtotal)
+        setItemTotal(total.toFixed(2))
+        setItemTaxTotal(taxAmount)
+    }
+
+    const handleItemChange = (selectedOption) => {
+        let itemCommonName = selectedOption.value.commonName
+        for(let i = 0; i < commonNames.length; i++){
+            if(commonNames[i].value === itemCommonName) {
+                setSelectedCommonName(commonNames[i])
+            }
+        }
         setItemCommonName(selectedOption.value.commonName)
+
+        let taxCategory = selectedOption.value.taxCategory
+        for(let i = 0; i < taxCategories.length; i++){
+            if(taxCategories[i].value === taxCategory) {
+                setSelectedTaxCategory(taxCategories[i])
+            }
+        }
         setItemTaxCategory(selectedOption.value.taxCategory)
+
+        let budgetCategory = selectedOption.value.budgetCategory
+        for(let i = 0; i < budgetCategories.length; i++){
+            if(budgetCategories[i].value === budgetCategory) {
+                setSelectedBudgetCategory(budgetCategories[i])
+            }
+        }
         setItemBudgetCategory(selectedOption.value.budgetCategory)
-        setItemTaxRate(selectedOption.value.taxRate)
+
+        setTaxRateFromTaxCategory(taxCategory, selectedZipCode)
+
         setSelectedItem(selectedOption);
     };
 
-    const handleCreate = (inputValue) => {
+    const handleItemCreate = (inputValue) => {
         setShouldCreateNewItem(true)
+        setSelectedCommonName({label: "Select or Create Common Name", value:{}})
         setItemCommonName("")
         setItemTaxCategory("")
+        setSelectedTaxCategory({label: "Select Tax Category", value:{}})
         setItemBudgetCategory("")
+        setSelectedBudgetCategory({label:"Select or Create Budget Category", value:{}})
         setItemTaxRate("")
         setSelectedItem({value: {itemName: inputValue}, label:inputValue});
     };
@@ -122,12 +176,17 @@ function NewTransactionModal({transactions}){
 
         setSelectedItem({label:"Select or Create Item", value:{}})
         setItemTaxCategory("")
+        setSelectedTaxCategory({label:"Select Tax Category", value:{}})
+        setSelectedBudgetCategory({label:"Select or Create Budget Category", value:{}})
         setItemBudgetCategory("")
         setItemTaxRate("")
         setItemUnitPrice("")
         setItemQuantity("")
         setItemDiscount("")
+        setSelectedCommonName({label:"Select or Create Common Name", value:{}})
         setItemCommonName("")
+        setItemTaxTotal("")
+        setItemTotal("")
     }
 
     const addTransaction = (event) => {
@@ -150,36 +209,108 @@ function NewTransactionModal({transactions}){
         setTransactionDate('')
         setMerchant('')
         setAccount('')
+        setSelectedAccount({label:"Select or Create Account", value:{}})
         setSelectedItem({label:"Select or Create Item", value:{}})
+        setSelectedMerchant({label:"Select or Create Merchant", value:{}})
+        setZipcode('')
         setItemUnitPrice("")
+        setItemCommonName('')
+        setItemTaxCategory('')
+        setItemTaxRate('')
+        setItemBudgetCategory('')
+        setSelectableItems(allItems)
     }
 
-    const handleCommonNameChange = (e) => {
-        setItemCommonName(e.target.value)
+    const handleCommonNameCreate = (commonName) => {
+        const newCommonName = { value: commonName, label: commonName };
+        setItemCommonName(commonName)
+        setSelectedCommonName(newCommonName)
+        setCommonNames([...commonNames, newCommonName])
     }
 
-    const handleTaxCategoryChange = (e) => {
-        setItemTaxCategory(e.target.value)
+    const handleCommonNameChange = (commonName) => {
+        setItemCommonName(commonName.value)
+        setSelectedCommonName(commonName)
     }
 
-    const handleBudgetCategoryChange = (e) => {
-        setItemBudgetCategory(e.target.value)
+    const handleTaxCategoryChange = (taxCategory) => {
+        setSelectedTaxCategory(taxCategory)
+
+        selectedItem.value.taxCategory = taxCategory.value
+        setSelectedItem(selectedItem)
+
+        setItemTaxCategory(taxCategory.value)
+        let taxRate = setTaxRateFromTaxCategory(taxCategory.value, selectedZipCode)
+
+        calculateTotals(itemUnitPrice, taxRate, itemQuantity, itemDiscount)
+    }
+
+    const handleBudgetCategoryChange = (budgetCategory) => {
+        setItemBudgetCategory(budgetCategory.value)
+        setSelectedBudgetCategory(budgetCategory)
     }
 
     const handleTaxRateChange = (e) => {
-        setItemTaxRate(e.target.value)
+        let taxRate = e.target.value
+        setItemTaxRate(taxRate)
+
+        calculateTotals(itemUnitPrice, taxRate, itemQuantity, itemDiscount)
     }
 
-    const handleAccountChange = (e) => {
-        setAccount(e.target.value)
+    const handleAccountChange = (account) => {
+        setSelectedAccount(account)
     }
 
-    const handleZipcodeChange = (e) => {
-        setZipcode(e.target.value)
+    const handleAccountCreate = (account) => {
+        const newAccount = { value: {name:account}, label: account };
+        setSelectedAccount(newAccount);
+        setAllAccounts([...allAccounts, newAccount])
     }
 
-    const handleMerchantCreate = (e) => {
-        setMerchant(e.target.value)
+    const handleZipcodeChange = (zipcode) => {
+        setSelectedZipCode(zipcode)
+        let taxCategory = "Use Tax"
+        if(selectedMerchant.value.taxCategory !== undefined){
+            taxCategory = selectedMerchant.value.taxCategory
+        }
+        if(selectedItem.value.taxCategory !== undefined){
+            taxCategory = selectedItem.value.taxCategory
+        }
+        setTaxRateFromTaxCategory(taxCategory, zipcode)
+        calculateTotals(itemUnitPrice || 0, itemTaxRate || 0, itemQuantity, itemDiscount)
+    }
+
+    const setTaxRateFromTaxCategory = (taxCategory, zipcode) => {
+        let useTaxRate = 0.0735 // default value
+        if(zipcode.value.taxRate !== undefined) {
+            useTaxRate = zipcode.value.taxRate
+        }
+            
+        switch (taxCategory){
+            case "NT":
+                useTaxRate = 0
+                break;
+            case "Food":
+                useTaxRate = 0.03
+                break;
+            case "Restaurant":
+                let restaurantRate = (useTaxRate + 0.01).toFixed(4)
+                useTaxRate = restaurantRate
+                break
+            case "Use Tax":
+            default:
+                break;
+        }
+
+        setItemTaxRate(useTaxRate)
+
+        return useTaxRate
+    }
+
+    const handleMerchantCreate = (merchantName) => {
+        setMerchant(merchantName)
+        // go to BE to get the ID
+        // setSelectedMerchant(newMerchant)
     }
 
     const handleMerchantChange = (selectedMerchant) => {
@@ -191,6 +322,37 @@ function NewTransactionModal({transactions}){
         ))
 
         setSelectableItems([...filteredItems])
+
+        setSelectedItem({label:"Select or Create Item", value:{}})
+
+        if(selectedMerchant.value.taxCategory === undefined){
+            setSelectedTaxCategory({label:"Select Tax Category", value:{}})
+            setItemTaxCategory("")
+            setItemTaxRate("")
+        } else{
+            let taxCategory = selectedMerchant.value.taxCategory
+            setSelectedTaxCategory({label:taxCategory, value:{taxCategory}})
+            setItemTaxCategory(taxCategory)
+
+            setTaxRateFromTaxCategory(taxCategory, selectedZipCode)
+        }
+
+        if(selectedMerchant.value.budgetCategory === undefined){
+            setSelectedBudgetCategory({label:"Select Budget Category", value:{}})
+            setItemBudgetCategory("")
+        } else{
+            let budgetCategory = selectedMerchant.value.taxCategory
+            setSelectedBudgetCategory({label:budgetCategory, value:{budgetCategory}})
+            setItemBudgetCategory(budgetCategory)
+        }
+
+        setItemUnitPrice("")
+        setItemQuantity("")
+        setItemDiscount("")
+        setSelectedCommonName({label:"Select or Create Common Name", value:{}})
+        setItemCommonName("")
+        setItemTaxTotal("")
+        setItemTotal("")
     }
 
     const handleTransactionDateSelect = (e) => {
@@ -198,19 +360,36 @@ function NewTransactionModal({transactions}){
     }
 
     const handleUnitPriceChange = (e) => {
-        setItemUnitPrice(e.target.value)
+        let unitPrice = e.target.value
+        setItemUnitPrice( unitPrice)
+        calculateTotals(unitPrice, itemTaxRate, itemQuantity, itemDiscount)
     }
 
     const handleQuantityChange = (e) => {
-        setItemQuantity(e.target.value)
+        let quantity = e.target.value
+        setItemQuantity(quantity)
+        calculateTotals(itemUnitPrice, itemTaxRate, quantity, itemDiscount)
     }
 
     const handleDiscountChange = (e) => {
-        setItemDiscount(e.target.value)
+        let discount = e.target.value
+        setItemDiscount(discount)
+        calculateTotals(itemUnitPrice, itemTaxRate, itemQuantity, discount)
+    }
+
+    const handleTaxTotalChange = (e) => {
+        let taxAmount = parseFloat(e.target.value)
+        let subtotal = parseFloat(itemSubtotal)
+        setItemTaxTotal(taxAmount)
+        setItemTotal(subtotal + taxAmount)
+    }
+
+    const handleTotalChange = (e) => {
+        setItemTotal(e.target.value)
     }
 
     const isFormValid = () => {
-        return itemUnitPrice === '' || merchant === '' || transactionDate === '' || account === '';
+        return itemUnitPrice === '' || merchant === '' || transactionDate === '' || selectedAccount === '';
     }
 
     const isSummaryValid = () => {
@@ -220,7 +399,7 @@ function NewTransactionModal({transactions}){
     const customStyles = {
             container: (provided) => ({
             ...provided,
-            width: 300, // Set your desired static width here
+            width: 250, // Set your desired static width here
             fontWeight: "normal",
             fontSize: ".7em",
         }),
@@ -253,11 +432,28 @@ function NewTransactionModal({transactions}){
                           </div>
                           <div className="form-group">
                               <label htmlFor="account">Account:</label>
-                              <input id="account" type="text" value={account} onChange={handleAccountChange}></input>
+                              <CreatableSelect
+                                   id="account"
+                                   value={selectedAccount}
+                                   onChange={handleAccountChange}
+                                   onCreateOption={handleAccountCreate}
+                                   options={allAccounts}
+                                   placeholder="Select or Create Account"
+                                   isSearchable
+                                   styles={customStyles}
+                              />
                           </div>
                           <div className="form-group">
                               <label htmlFor="zipcode">ZipCode:</label>
-                              <input id="zipcode" type="text" value={zipcode} onChange={handleZipcodeChange}></input>
+                              <CreatableSelect
+                                   id="zipcode"
+                                   value={selectedZipCode}
+                                   onChange={handleZipcodeChange}
+                                   options={selectableZipCodes}
+                                   placeholder="Select ZipCode"
+                                   isSearchable
+                                   styles={customStyles}
+                              />
                           </div>
                         </div>
                         <div>
@@ -266,8 +462,8 @@ function NewTransactionModal({transactions}){
                             <CreatableSelect
                                id="itemName"
                                value={selectedItem}
-                               onChange={handleChange}
-                               onCreateOption={handleCreate}
+                               onChange={handleItemChange}
+                               onCreateOption={handleItemCreate}
                                options={selectableItems}
                                placeholder="Select or Create Item"
                                isSearchable
@@ -276,31 +472,65 @@ function NewTransactionModal({transactions}){
                           </div>
                           <div className="form-group">
                               <label htmlFor="commonName">Common Name:</label>
-                              <input id="commonName" type="text" value={itemCommonName} onChange={handleCommonNameChange}></input>
+                              <CreatableSelect
+                                 id="commonName"
+                                 value={selectedCommonName}
+                                 onChange={handleCommonNameChange}
+                                 onCreateOption={handleCommonNameCreate}
+                                 options={commonNames}
+                                 placeholder="Select or Create Common Name"
+                                 isSearchable
+                                 styles={customStyles}
+                              />
+                          </div>
+                          <div className="form-group">
+                              <label htmlFor="budgetCategory">Budget Category:</label>
+                              <CreatableSelect
+                                 id="budgetCategory"
+                                 value={selectedBudgetCategory}
+                                 onChange={handleBudgetCategoryChange}
+                                 options={budgetCategories}
+                                 placeholder="Select or Create Budget Category"
+                                 isSearchable
+                                 styles={customStyles}
+                              />
                           </div>
                           <div className="form-group">
                               <label htmlFor="taxCategory">Tax Category:</label>
-                              <input id="taxCategory" type="text" value={itemTaxCategory} onChange={handleTaxCategoryChange}></input>
+                              <CreatableSelect
+                                 id="taxCategory"
+                                 value={selectedTaxCategory}
+                                 onChange={handleTaxCategoryChange}
+                                 options={taxCategories}
+                                 placeholder="Select Tax Category"
+                                 isSearchable
+                                 styles={customStyles}
+                              />
                           </div>
                           <div className="form-group">
                               <label htmlFor="taxRate">Tax Rate:</label>
                               <input id="taxRate" type="text" value={itemTaxRate} onChange={handleTaxRateChange}></input>
                           </div>
-                          <div className="form-group">
-                              <label htmlFor="budgetCategory">Budget Category:</label>
-                              <input id="budgetCategory" type="text" value={itemBudgetCategory} onChange={handleBudgetCategoryChange}></input>
-                          </div>
+                          <hr/>
                           <div className="form-group">
                               <label htmlFor="unitPrice">Unit Price:</label>
                               <input id="unitPrice" min="1" type="number" step="any" value={itemUnitPrice} onChange={handleUnitPriceChange}></input>
+                         </div>
+                         <div className="form-group">
+                             <label htmlFor="discount">Discount:</label>
+                             <input id="discount" min="1" type="number" step="any" placeholder="Enter a positive value" value={itemDiscount} onChange={handleDiscountChange}></input>
                          </div>
                          <div className="form-group">
                              <label htmlFor="quantity">Quantity:</label>
                              <input id="quantity" min="1" type="number" value={itemQuantity} onChange={handleQuantityChange}></input>
                          </div>
                          <div className="form-group">
-                             <label htmlFor="discount">Discount:</label>
-                             <input id="discount" min="1" type="number" step="any" value={itemDiscount} onChange={handleDiscountChange}></input>
+                             <label htmlFor="taxTotal">Tax Total:</label>
+                             <input id="taxTotal" type="number" step="any" value={itemTaxTotal} onChange={handleTaxTotalChange}></input>
+                         </div>
+                         <div className="form-group">
+                             <label htmlFor="total">Total:</label>
+                             <input id="total" min="1" type="number" step="any" value={itemTotal} onChange={handleTotalChange}></input>
                          </div>
                        </div>
                    </div>

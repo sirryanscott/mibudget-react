@@ -2,27 +2,24 @@ const DBMerchants = [
     {
         id: 1001,
         name: "Costco",
-        zipcode: 84045,
-        taxRates: [
-            {
-                Food: .03,
-                UseTax: .0735,
-                Restaurant: .0835,
-            }
-        ]
     },
     {
         id: 1003,
         name: "Walmart",
-        zipcode: 84045,
-        taxRates: [
-            {
-                Food: .03,
-                UseTax: .0735,
-                Restaurant: .0835,
-            }
-        ]
+    },
+    {
+        id: 1004,
+        name: "Dairy Queen",
+        taxCategory: "Restaurant",
+        budgetCategory: "Restaurants"
+    },
+    {
+        id: 1005,
+        name: "Direct Communications",
+        taxCategory: "NT",
+        budgetCategory: "Internet"
     }
+
 ]
 
 function InitalMerchants() {
@@ -33,8 +30,8 @@ function InitalMerchants() {
           value: {
               id: key.id,
               name: key.name,
-              zipcode: key.zipcode,
-              taxRates: key.taxRates,
+              taxCategory: key.taxCategory,
+              budgetCategory: key.budgetCategory,
           }
         })
       )
