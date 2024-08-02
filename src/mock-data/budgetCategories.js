@@ -1,4 +1,4 @@
-const budgetCategories = [ "Groceries", "Restaurants", "Household Supplies", "Toiletries" ]
+const budgetCategories = [ "Groceries", "Restaurants", "Household Supplies", "Toiletries", "Payday" ]
 
 function BudgetCategories() {
     let allBudgetCategories = []

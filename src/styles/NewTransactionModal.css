@@ -107,7 +107,7 @@ select {
     padding:5px;
 }
 
-td {
+.itemsList > td {
     font-weight: normal;
 }
 

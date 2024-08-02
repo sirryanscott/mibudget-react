@@ -1,4 +1,4 @@
-const commonNames = [ "Bacon", "Whole Milk", "Cheddar Cheese", "Napkins", "Eggs", "Toilet Paper" ]
+const commonNames = [ "Bacon", "Whole Milk", "Cheddar Cheese", "Napkins", "Eggs", "Toilet Paper", "Hand Soap", "Laundry Soap", "Toothpaste" ]
 
 function CommonNames() {
     let allCommonNames = []

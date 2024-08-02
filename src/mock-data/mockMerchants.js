@@ -18,7 +18,12 @@ const DBMerchants = [
         name: "Direct Communications",
         taxCategory: "NT",
         budgetCategory: "Internet"
-    }
+    },
+    {
+        id: 1006,
+        name: "LiveAuctioneers",
+        budgetCategory: "Payday"
+    },
 
 ]
 

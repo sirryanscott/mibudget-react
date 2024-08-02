@@ -1,8 +1,7 @@
 // TODO: Add
 //   Edit item
 //   Delete item
-// I don't want different merchants per zipcode, but rather a dropdown of tax rates by zip code. that way it doesn't matter what merchant it is
-// adding common name not saving when addint a item
+//   I can totally get rid of the "item..." states and just use the "selected..." ones
 
 import {useState} from "react"
 import { formatCurrency } from "../utils/FormatCurrency"
@@ -17,82 +16,110 @@ import BudgetCategories from "../mock-data/budgetCategories";
 import CommonNames from "../mock-data/commonNames";
 
 function NewTransactionModal({transactions}){
-    const [items, setItems] = useState([])
+    // Initial Stuff
+    const [allMerchants, setAllMerchants] = useState(initialMerchants);
+    const [allAccounts, setAllAccounts] = useState(initialAccounts);
     const [allItems, setAllItems] = useState(initialItems);
+
+    const [items, setItems] = useState([])
     const [selectableItems, setSelectableItems] = useState(initialItems);
     const [selectableZipCodes, setSelectableZipCodes] = useState(InitialZipCodesAndRates);
-    const [selectedZipCode, setSelectedZipCode] = useState({label:84005, value:{zipCode:84005,taxRegionName:"UTAH CO TR",taxRate:0.0735}})
-    const [selectedTaxCategory, setSelectedTaxCategory] = useState({label:"Select Tax Category", value:{}})
-    const [selectedBudgetCategory, setSelectedBudgetCategory] = useState({label:"Select or Create Budget Category", value:{}})
-    const [selectedCommonName, setSelectedCommonName] = useState({label:"Select or Create Common Name", value:{}})
     const [taxCategories, setTaxCategories] = useState(TaxCategories)
     const [budgetCategories, setBudgetCategories] = useState(BudgetCategories)
     const [commonNames, setCommonNames] = useState(CommonNames)
-    const [allMerchants, setAllMerchants] = useState(initialMerchants);
-    const [allAccounts, setAllAccounts] = useState(initialAccounts);
-    const [transactionDate, setTransactionDate] = useState('')
+
+    // Selected Stuff
     const [selectedItem, setSelectedItem] = useState({label:"Select or Create Item", value:{}})
     const [selectedMerchant, setSelectedMerchant] = useState({label:"Select or Create Merchant", value:{}})
     const [selectedAccount, setSelectedAccount] = useState({label:"Select or Create Account", value:{}})
-    const [merchant, setMerchant] = useState('')
-    const [account, setAccount] = useState('')
-    const [zipcode, setZipcode] = useState('')
+    const [selectedZipCode, setSelectedZipCode] = useState({label:84005, value:{zipCode:84005,taxRegionName:"UTAH CO TR",taxRate:0.0735}})
+    const [selectedTaxCategory, setSelectedTaxCategory] = useState({label:"Select Tax Category", value:""})
+    const [selectedBudgetCategory, setSelectedBudgetCategory] = useState({label:"Select or Create Budget Category", value:""})
+    const [selectedCommonName, setSelectedCommonName] = useState({label:"Select or Create Common Name", value:""})
+    const [transactionDate, setTransactionDate] = useState('')
 
-    const [itemCommonName, setItemCommonName] = useState('')
     const [itemUnitPrice, setItemUnitPrice] = useState('')
     const [itemDiscount, setItemDiscount] = useState('')
     const [itemSubtotal, setItemSubtotal] = useState('')
     const [itemTotal, setItemTotal] = useState('')
     const [itemTaxTotal, setItemTaxTotal] = useState('')
     const [itemQuantity, setItemQuantity] = useState('')
-    const [itemTaxCategory, setItemTaxCategory] = useState('')
-    const [itemBudgetCategory, setItemBudgetCategory] = useState('')
     const [itemTaxRate, setItemTaxRate] = useState('')
 
     const [shouldCreateNewItem, setShouldCreateNewItem] = useState(false)
 
+    // Totals
     const [transactionTotal, setTransactionTotal] = useState(0)
     const [transactionTaxTotal, setTransactionTaxTotal] = useState(0)
     const [transactionUnitPriceTotal, setTransactionUnitPriceTotal] = useState(0)
 
     const [budgetSummary, setBudgetSummary] = useState(new Map())
 
+    const [descriptionMap, setDescriptionMap] = useState(new Map())
+
     const addItem = (event) => {
-      event.preventDefault()
+        event.preventDefault()
 
-      let quantity = parseFloat(event.target.quantity.value) || 1
-      if (quantity === ''){
-          quantity = 1
-      }
+        let quantity = parseFloat(event.target.quantity.value) || 1
+        if (quantity === ''){
+            quantity = 1
+        }
 
-      setTransactionDate(event.target.date.value)
-      setAccount(selectedAccount.value.name)
+        setTransactionDate(event.target.date.value)
 
-      let item = {
-        itemName: selectedItem.value.itemName,
-        commonName: itemCommonName,
-        unitPrice: -parseFloat(itemUnitPrice),
-        quantity: quantity,
-        discount: itemDiscount,
-        subtotal: -parseFloat(itemSubtotal),
-        taxCategory: itemTaxCategory,
-        taxRate: itemTaxRate,
-        taxAmount: -parseFloat(itemTaxTotal),
-        total: -parseFloat(itemTotal),
-        budgetCategory: itemBudgetCategory,
-        merchant: {id: selectedMerchant.value.id}
-      }
+        let commonName = ""
+        if(JSON.stringify(selectedCommonName.value) !== '{}'){
+            commonName = selectedCommonName.value
+        }
+        let budgetCategory = ""
+        if(JSON.stringify(selectedBudgetCategory.value) !== '{}'){
+            budgetCategory = selectedBudgetCategory.value
+        }
+        let taxCategory = ""
+        if(JSON.stringify(selectedTaxCategory.value) !== '{}'){
+            taxCategory = selectedTaxCategory.value
+        }
+
+        let item = {
+            itemName: selectedItem.value.itemName,
+            commonName: commonName,
+            unitPrice: -parseFloat(itemUnitPrice),
+            quantity: quantity,
+            discount: itemDiscount,
+            subtotal: -parseFloat(itemSubtotal),
+            taxCategory: taxCategory,
+            taxRate: itemTaxRate,
+            taxAmount: -parseFloat(itemTaxTotal),
+            total: -parseFloat(itemTotal),
+            budgetCategory: budgetCategory,
+            merchant: {id: selectedMerchant.value.id}
+        }
       
-     if(shouldCreateNewItem) {
-        const newItem = { value: item, label: item.itemName };
-        setAllItems([...allItems, newItem]);
-        setSelectedItem(newItem);
-        setSelectableItems([...selectableItems, newItem])
-     }
+        if(shouldCreateNewItem) {
+            const newItem = { value: item, label: item.itemName };
+            setAllItems([...allItems, newItem]);
+            setSelectedItem(newItem);
+            setSelectableItems([...selectableItems, newItem])
+        }
 
-      setItems([...items, item])
-      addBudgetSummary(item)
-      setShouldCreateNewItem(false)
+        setItems([...items, item])
+        addBudgetSummary(item)
+        setShouldCreateNewItem(false)
+        if(JSON.stringify(selectedCommonName.value) !== '{}'){
+            setDescriptionMap(prevMap => {
+                const newMap = new Map(prevMap);
+
+                let currentCategoryDescription = newMap.get(item.budgetCategory) || [];
+
+                if (!currentCategoryDescription.includes(selectedCommonName.value)) {
+                    currentCategoryDescription.push(selectedCommonName.value);
+                }
+
+                newMap.set(item.budgetCategory, currentCategoryDescription);
+
+                return newMap;
+            });
+        }
     }
 
     const calculateTotals = (unitPrice, taxRate, quantity, discount) => {
@@ -119,7 +146,6 @@ function NewTransactionModal({transactions}){
                 setSelectedCommonName(commonNames[i])
             }
         }
-        setItemCommonName(selectedOption.value.commonName)
 
         let taxCategory = selectedOption.value.taxCategory
         for(let i = 0; i < taxCategories.length; i++){
@@ -127,7 +153,6 @@ function NewTransactionModal({transactions}){
                 setSelectedTaxCategory(taxCategories[i])
             }
         }
-        setItemTaxCategory(selectedOption.value.taxCategory)
 
         let budgetCategory = selectedOption.value.budgetCategory
         for(let i = 0; i < budgetCategories.length; i++){
@@ -135,21 +160,44 @@ function NewTransactionModal({transactions}){
                 setSelectedBudgetCategory(budgetCategories[i])
             }
         }
-        setItemBudgetCategory(selectedOption.value.budgetCategory)
 
-        setTaxRateFromTaxCategory(taxCategory, selectedZipCode)
+        if(JSON.stringify(selectedMerchant.value) === '{}'){
+            let merchantId = selectedOption.value.merchant.id
+            for(let i = 0; i < allMerchants.length; i++){
+            console.log(allMerchants[i])
+                if(merchantId === allMerchants[i].value.id){
+                    let newSelectedMerchant = allMerchants[i]
+                    setSelectedMerchant(newSelectedMerchant)
+
+                    let filteredItems = allItems.filter(item => (
+                        item.value.merchant.id === newSelectedMerchant.value.id
+                    ))
+
+                    setSelectableItems([...filteredItems])
+                }
+            }
+        }
+
+        let taxRate = setTaxRateFromTaxCategory(taxCategory, selectedZipCode)
+
+        if(selectedOption.value.lastPurchasePrice !== 0){
+            let unitPrice = selectedOption.value.lastPurchasePrice
+            setItemUnitPrice(unitPrice)
+            calculateTotals(unitPrice, taxRate, itemQuantity, itemDiscount)
+        } else{
+            setItemUnitPrice("")
+            setItemTaxTotal("")
+            setItemTotal("")
+        }
 
         setSelectedItem(selectedOption);
     };
 
     const handleItemCreate = (inputValue) => {
         setShouldCreateNewItem(true)
-        setSelectedCommonName({label: "Select or Create Common Name", value:{}})
-        setItemCommonName("")
-        setItemTaxCategory("")
-        setSelectedTaxCategory({label: "Select Tax Category", value:{}})
-        setItemBudgetCategory("")
-        setSelectedBudgetCategory({label:"Select or Create Budget Category", value:{}})
+        setSelectedCommonName({label: "Select or Create Common Name", value:""})
+        setSelectedTaxCategory({label: "Select Tax Category", value:""})
+        setSelectedBudgetCategory({label:"Select or Create Budget Category", value:""})
         setItemTaxRate("")
         setSelectedItem({value: {itemName: inputValue}, label:inputValue});
     };
@@ -175,31 +223,73 @@ function NewTransactionModal({transactions}){
         });
 
         setSelectedItem({label:"Select or Create Item", value:{}})
-        setItemTaxCategory("")
-        setSelectedTaxCategory({label:"Select Tax Category", value:{}})
-        setSelectedBudgetCategory({label:"Select or Create Budget Category", value:{}})
-        setItemBudgetCategory("")
+        setSelectedTaxCategory({label:"Select Tax Category", value:""})
+        setSelectedBudgetCategory({label:"Select or Create Budget Category", value:""})
         setItemTaxRate("")
         setItemUnitPrice("")
         setItemQuantity("")
         setItemDiscount("")
-        setSelectedCommonName({label:"Select or Create Common Name", value:{}})
-        setItemCommonName("")
+        setSelectedCommonName({label:"Select or Create Common Name", value:""})
         setItemTaxTotal("")
         setItemTotal("")
     }
 
     const addTransaction = (event) => {
-      event.preventDefault()
+        event.preventDefault()
+
         let date = transactionDate
-        if (budgetSummary.size > 1 ) {
-            transactions.push({"category":"Multiple", "date": transactionDate, "merchant": merchant, "account": account, "total":transactionTotal})
+        let splitTransaction = budgetSummary.size > 1
+        let transaction = {}
+        let childTransactions = []
+
+        if (splitTransaction) {
+            transaction = {
+                "category":"Multiple", 
+                "date": transactionDate, 
+                "merchant": selectedMerchant.value.name, 
+                "paymentMethod": {"nickname":selectedAccount.value.nickname}, 
+                "totalAmount":transactionTotal, 
+                "isCC": selectedAccount.value.isCC
+            }
             date = ""
         }
         Array.from(budgetSummary.entries()).forEach(([key, value]) => {
-          let transaction = {"category":key, "date": date, "merchant": merchant, "account": account, "total":value.total}
-          transactions.push(transaction)
+            let itemsDescription = descriptionMap.get(key)
+            let finalDescription = ""
+
+            if(itemsDescription !== undefined){
+                for(let i = 0; i < itemsDescription.length; i++){
+                    finalDescription += itemsDescription[i]
+                    if(i+1 !== itemsDescription.length){
+                        finalDescription += ", "
+                    }
+                }
+            }
+            let transaction = {
+                "category":key, 
+                "date": date, 
+                "merchant": selectedMerchant.value.name, 
+                "paymentMethod": {"nickname": selectedAccount.value.nickname}, 
+                "totalAmount":value.total, 
+                "description":finalDescription, 
+                "isCC": selectedAccount.value.isCC
+            }
+            if(splitTransaction){
+                transaction.isChild = true
+                childTransactions.push(transaction)
+            } else {
+                transaction.childTransactions = childTransactions
+                transactions.push(transaction)
+            }
         });
+
+        if (splitTransaction){
+            transaction.childTransactions = childTransactions
+            transactions.push(transaction)
+        }
+
+        console.log(transaction)
+        console.log(transactions)
 
         setBudgetSummary(new Map())
         setTransactionTotal(0)
@@ -207,29 +297,21 @@ function NewTransactionModal({transactions}){
         setTransactionUnitPriceTotal(0)
         setItems([])
         setTransactionDate('')
-        setMerchant('')
-        setAccount('')
         setSelectedAccount({label:"Select or Create Account", value:{}})
         setSelectedItem({label:"Select or Create Item", value:{}})
         setSelectedMerchant({label:"Select or Create Merchant", value:{}})
-        setZipcode('')
         setItemUnitPrice("")
-        setItemCommonName('')
-        setItemTaxCategory('')
         setItemTaxRate('')
-        setItemBudgetCategory('')
         setSelectableItems(allItems)
     }
 
     const handleCommonNameCreate = (commonName) => {
         const newCommonName = { value: commonName, label: commonName };
-        setItemCommonName(commonName)
         setSelectedCommonName(newCommonName)
         setCommonNames([...commonNames, newCommonName])
     }
 
     const handleCommonNameChange = (commonName) => {
-        setItemCommonName(commonName.value)
         setSelectedCommonName(commonName)
     }
 
@@ -239,14 +321,12 @@ function NewTransactionModal({transactions}){
         selectedItem.value.taxCategory = taxCategory.value
         setSelectedItem(selectedItem)
 
-        setItemTaxCategory(taxCategory.value)
         let taxRate = setTaxRateFromTaxCategory(taxCategory.value, selectedZipCode)
 
         calculateTotals(itemUnitPrice, taxRate, itemQuantity, itemDiscount)
     }
 
     const handleBudgetCategoryChange = (budgetCategory) => {
-        setItemBudgetCategory(budgetCategory.value)
         setSelectedBudgetCategory(budgetCategory)
     }
 
@@ -308,14 +388,12 @@ function NewTransactionModal({transactions}){
     }
 
     const handleMerchantCreate = (merchantName) => {
-        setMerchant(merchantName)
         // go to BE to get the ID
         // setSelectedMerchant(newMerchant)
     }
 
     const handleMerchantChange = (selectedMerchant) => {
         setSelectedMerchant(selectedMerchant)
-        setMerchant(selectedMerchant.value.name)
 
         let filteredItems = allItems.filter(item => (
             item.value.merchant.id === selectedMerchant.value.id
@@ -326,31 +404,26 @@ function NewTransactionModal({transactions}){
         setSelectedItem({label:"Select or Create Item", value:{}})
 
         if(selectedMerchant.value.taxCategory === undefined){
-            setSelectedTaxCategory({label:"Select Tax Category", value:{}})
-            setItemTaxCategory("")
+            setSelectedTaxCategory({label:"Select Tax Category", value:""})
             setItemTaxRate("")
         } else{
             let taxCategory = selectedMerchant.value.taxCategory
-            setSelectedTaxCategory({label:taxCategory, value:{taxCategory}})
-            setItemTaxCategory(taxCategory)
+            setSelectedTaxCategory({label:taxCategory, value:taxCategory})
 
             setTaxRateFromTaxCategory(taxCategory, selectedZipCode)
         }
 
         if(selectedMerchant.value.budgetCategory === undefined){
-            setSelectedBudgetCategory({label:"Select Budget Category", value:{}})
-            setItemBudgetCategory("")
+            setSelectedBudgetCategory({label:"Select Budget Category", value:""})
         } else{
-            let budgetCategory = selectedMerchant.value.taxCategory
-            setSelectedBudgetCategory({label:budgetCategory, value:{budgetCategory}})
-            setItemBudgetCategory(budgetCategory)
+            let budgetCategory = selectedMerchant.value.budgetCategory
+            setSelectedBudgetCategory({label:budgetCategory, value:budgetCategory})
         }
 
         setItemUnitPrice("")
         setItemQuantity("")
         setItemDiscount("")
         setSelectedCommonName({label:"Select or Create Common Name", value:{}})
-        setItemCommonName("")
         setItemTaxTotal("")
         setItemTotal("")
     }
@@ -389,7 +462,7 @@ function NewTransactionModal({transactions}){
     }
 
     const isFormValid = () => {
-        return itemUnitPrice === '' || merchant === '' || transactionDate === '' || selectedAccount === '';
+        return itemUnitPrice === '' || selectedMerchant.value.name === undefined || transactionDate === '' || selectedAccount.value.nickname === undefined;
     }
 
     const isSummaryValid = () => {
@@ -399,7 +472,7 @@ function NewTransactionModal({transactions}){
     const customStyles = {
             container: (provided) => ({
             ...provided,
-            width: 250, // Set your desired static width here
+            width: 275, // Set your desired static width here
             fontWeight: "normal",
             fontSize: ".7em",
         }),

@@ -1,23 +1,43 @@
 const DBAccounts = [
     {
         id: 1001,
-        name: "Checking",
+        nickname: "Checking",
+        isCC: false,
+        pendingBalance: 1000, 
+        currentBalance: 3500, 
+        balanceAfterPending: 2500
     },
     {
         id: 1003,
-        name: "Citi",
+        nickname: "Citi",
+        isCC: true,
+        pendingBalance: 1000, 
+        currentBalance: 3500, 
+        balanceAfterPending: 2500
     },
     {
         id: 1003,
-        name: "Emergency Fund",
+        nickname: "Emergency Fund",
+        isCC: false,
+        pendingBalance: 1000, 
+        currentBalance: 3500, 
+        balanceAfterPending: 2500
     },
     {
         id: 1003,
-        name: "Next Month Expenses",
+        nickname: "Next Month Expenses",
+        isCC: false,
+        pendingBalance: 1000, 
+        currentBalance: 3500, 
+        balanceAfterPending: 2500
     },
     {
         id: 1003,
-        name: "3rd Paycheck",
+        nickname: "3rd Paycheck",
+        isCC: false,
+        pendingBalance: 1000, 
+        currentBalance: 3500, 
+        balanceAfterPending: 2500
     },
 ]
 
@@ -25,10 +45,14 @@ function InitalAccounts() {
     let initialAccounts = []
     DBAccounts.map(key => (
         initialAccounts.push({
-          label: key.name,
+          label: key.nickname,
           value: {
               id: key.id,
-              name: key.name,
+              nickname: key.nickname,
+              isCC: key.isCC,
+              currentBalance: key.currentBalance,
+              pendingBalance: key.pendingBalance,
+              balanceAfterPending: key.balanceAfterPending,
           }
         })
       )

@@ -1,0 +1,15 @@
+Todo:
+  * make budget category fields editable
+  * implement add budget category button
+  * figure out how to implement the BudgetParentComponent that manages the different budget for each Month
+  * routing for all the pages
+  * login
+  * connecting to a DB
+  * budget totals changed by the transactions added 
+  * accounts totals changed by the transactions added 
+  * implement the cleared checkbox logic 
+  * add a new merchant 
+  * page for all transactions 
+  * reporting page 
+  * net worth calculator page 
+

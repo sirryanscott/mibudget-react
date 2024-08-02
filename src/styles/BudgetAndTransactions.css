@@ -44,6 +44,26 @@ tr:nth-child(even) {
   background-color: #ffffff; /* White */
 }
 
+.positive-transaction {
+    background-color: #b7e1cd !important;
+    font-weight: 600 !important;
+}
+
+.parent-transaction {
+    font-weight: 600 !important;
+}
+
+.child-transaction {
+    font-style: italic;
+    color: #666;
+}
+
+.bank-transfer-transaction {
+    font-style: oblique;
+    text-decoration: underline;
+    font-weight: 500 !important;
+}
+
 h3 {
     margin-top: 0px;
 }

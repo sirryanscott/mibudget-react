@@ -1,9 +1,9 @@
 import React from 'react';
 
-function Modal({ children, onClose }) {
+function Modal({ children, onClose, modalStyle }) {
   return (
     <div style={styles.overlay}>
-      <div style={styles.modal}>
+      <div className='modal' style={modalStyle}>
         {children}
         <button style={styles.closeButton} onClick={onClose}>X</button>
       </div>
@@ -28,7 +28,7 @@ const styles = {
     padding: '20px',
     borderRadius: '8px',
     position: 'relative',
-    width: '80%',
+    width: '90%',
     maxHeight: '90%',
     overflowY: 'auto',
   },

@@ -1,0 +1,17 @@
+.modal-title {
+    margin-top: 3px;
+    margin-bottom: 8px;
+    padding: 0px;
+}
+
+.new-income-form-container{
+    display: flex;
+    justify-content: center;
+    border: 1px solid #6c757d; /* Gray Border */
+    margin: 10px;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Add shadow for depth */
+    gap: 15px;
+}
+

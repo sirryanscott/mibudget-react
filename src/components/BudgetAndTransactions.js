@@ -4,7 +4,7 @@ import TransactionsSection from "./TransactionsSection";
 
 let budgetAmounts = [{"category":"Groceries", "budgetAmount":1000, "adjust":0,"spent":-600,"remaining":600},{"category":"Restaurants", "budgetAmount":200, "adjust":50,"spent":-60,"remaining":-190}]
 
-let transactions = [{"date":"6/26/2024", "account":"Citi", "total":-65, "category":"Restaurants", "merchant":"Mo'bettahs", "description":""}]
+let transactions = [{"date":"6/26/2024", "account":"Citi", "total":-65, "category":"Restaurants", "merchant":"Mo'bettahs", "description":"", "isCC":true}]
 
 
 function BudgetAndTransactions() {
@@ -16,7 +16,7 @@ function BudgetAndTransactions() {
                  <BudgetAmounts budgetAmounts={budgetAmounts}/>
                 </div>
                 <div className="transactions-section">
-                 <TransactionsSection originalTransactions={transactions}/>
+                 <TransactionsSection/>
                 </div>
             </div>
         </div>

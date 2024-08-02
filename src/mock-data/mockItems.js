@@ -8,10 +8,11 @@ const DBItems = [
         merchant: {
             id: 1001,
             name: "Costco",
-        }
+        },
+        lastPurchasePrice: 5.74,
     },
     {
-        id: 10001,
+        id: 10002,
         name: "KS Mild Cheddar Cheese - 258852",
         commonName: "Cheddar Cheese",
         budgetCategory: "Groceries",
@@ -19,7 +20,56 @@ const DBItems = [
         merchant: {
             id: 1001,
             name: "Costco",
-        }
+        },
+        lastPurchasePrice: 5.79,
+    },
+    {
+        id: 10004,
+        name: "KS Laundry Soap - 888383",
+        commonName: "Laundry Soap",
+        budgetCategory: "Household Supplies",
+        taxCategory: "Use Tax",
+        merchant: {
+            id: 1001,
+            name: "Costco",
+        },
+        lastPurchasePrice: 17.99,
+    },
+    {
+        id: 10007,
+        name: "Crest Whitening Toothpaste 4 pack - 384838",
+        commonName: "Toothpaste",
+        budgetCategory: "Toiletries",
+        taxCategory: "Use Tax",
+        merchant: {
+            id: 1001,
+            name: "Costco",
+        },
+        lastPurchasePrice: 0,
+    },
+    {
+        id: 10006,
+        name: "KS Hand Soap - 384838",
+        commonName: "Hand Soap",
+        budgetCategory: "Toiletries",
+        taxCategory: "Use Tax",
+        merchant: {
+            id: 1001,
+            name: "Costco",
+        },
+        lastPurchasePrice: 0,
+    },
+    {
+        id: 10005,
+        name: "KS Toilet Paper - 384838",
+        commonName: "Toilet Paper",
+        budgetCategory: "Toiletries",
+        taxCategory: "Use Tax",
+        merchant: {
+            id: 1001,
+            name: "Costco",
+        },
+        lastPurchasePrice: 0,
     },
     {
         id: 10003,
@@ -30,7 +80,8 @@ const DBItems = [
         merchant: {
             id: 1003,
             name: "Walmart",
-        }
+        },
+        lastPurchasePrice: 9.89,
     },
 ]
 
@@ -44,8 +95,8 @@ function InitialItems() {
               commonName: key.commonName,
               budgetCategory: key.budgetCategory,
               taxCategory: key.taxCategory,
-              taxRate: key.taxRate,
-              merchant: key.merchant
+              merchant: key.merchant,
+              lastPurchasePrice: key.lastPurchasePrice
           }
         })
       )
