@@ -5,7 +5,7 @@ import Modal from "../modals/AddModal";
 import NewTransactionModal from "../modals/NewTransactionModal";
 import NewIncomeTransactionModal from "../modals/NewIncomeTransactionModal";
 import NewBankTransferModal from "../modals/NewBankTransferModal";
-import { getTransactionsForUser } from "../api";
+import { fetchTransactionsForUser } from "../api";
 
 function TransactionsSection() {
     const [selectedContent, setSelectedContent] = useState('');
@@ -16,7 +16,7 @@ function TransactionsSection() {
     useEffect(() => {
         const getTransactions = async () => {
             try {
-                const data = await getTransactionsForUser(1);
+                const data = await fetchTransactionsForUser(1);
                 console.log(data)
                 setTransactions(data);
             } catch (error) {
@@ -150,9 +150,8 @@ function TransactionsSection() {
                            <td><input type="checkbox" id={index} name="cleared"/></td>
                            <td>{transaction.date}</td>
                            <td>{formatCurrency(transaction.totalAmount)}</td>
-                           <td>Merchant</td>
+                           <td>{transaction.merchant.name}</td>
                            <td>Category</td>
-                           {/*<td>{transaction.merchant}</td>*/}
                            {/*<td>{transaction.category}</td>*/}
                            <td>{transaction.paymentMethod.nickname}</td>
                            <td>{transaction.description}</td>

@@ -6,7 +6,7 @@ const DBItems = [
         budgetCategory: "Groceries",
         taxCategory: "Food",
         merchant: {
-            id: 1001,
+            id: 1,
             name: "Costco",
         },
         lastPurchasePrice: 5.74,
@@ -18,7 +18,7 @@ const DBItems = [
         budgetCategory: "Groceries",
         taxCategory: "Food",
         merchant: {
-            id: 1001,
+            id: 1,
             name: "Costco",
         },
         lastPurchasePrice: 5.79,

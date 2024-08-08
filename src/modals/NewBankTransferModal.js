@@ -1,11 +1,8 @@
 import {useState} from "react"
-import CreatableSelect from 'react-select/creatable';
 import "../styles/NewIncomeTransactionModal.css"
-import initialAccounts from "../mock-data/mockAccounts";
+import AccountSelectDropdown from "../components/AccountSelectDropdown";
 
 function NewBankTransferModal({transactions}){
-    const [allAccounts, setAllAccounts] = useState(initialAccounts);
-
     const [transactionDate, setTransactionDate] = useState('')
     const [description, setDescription] = useState('')
     const [totalAmount, setTotalAmount] = useState('')
@@ -43,18 +40,6 @@ function NewBankTransferModal({transactions}){
         setDescription(e.target.value)
     }
 
-    const handleToAccountChange = (account) => {
-        setSelectedToAccount(account)
-    }
-
-    const handleFromAccountChange = (account) => {
-        setSelectedFromAccount(account)
-    }
-
-    const handleAccountCreate = (account) => {
-        setAllAccounts([...allAccounts, { value: {name:account}, label: account }])
-    }
-
     const handleTransactionDateSelect = (e) => {
         setTransactionDate(e.target.value)
     }
@@ -84,32 +69,8 @@ function NewBankTransferModal({transactions}){
                         <label htmlFor="date">Transaction Date:</label>
                         <input id="date" type="date" value={transactionDate} onChange={handleTransactionDateSelect}></input>
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="fromAccount">From Account:</label>
-                        <CreatableSelect
-                            id="fromAccount"
-                            value={selectedFromAccount}
-                            onChange={handleFromAccountChange}
-                            onCreateOption={handleAccountCreate}
-                            options={allAccounts}
-                            placeholder="Select or Create Account"
-                            isSearchable
-                            styles={customStyles}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="toAccount">To Account:</label>
-                        <CreatableSelect
-                            id="toAccount"
-                            value={selectedToAccount}
-                            onChange={handleToAccountChange}
-                            onCreateOption={handleAccountCreate}
-                            options={allAccounts}
-                            placeholder="Select or Create Account"
-                            isSearchable
-                            styles={customStyles}
-                        />
-                    </div>
+                    <AccountSelectDropdown id="fromAccount" selectedAccount={selectedFromAccount} setSelectedAccount={setSelectedFromAccount} isNewMerchantModalOpen={false}/>
+                    <AccountSelectDropdown id="toAccount" selectedAccount={selectedToAccount} setSelectedAccount={setSelectedToAccount} isNewMerchantModalOpen={false}/>
                     <div className="form-group">
                         <label htmlFor="total">Total:</label>
                         <input id="total" min="1" type="number" step="any" value={totalAmount} onChange={handleTotalChange}></input>

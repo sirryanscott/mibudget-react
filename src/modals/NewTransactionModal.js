@@ -1,31 +1,32 @@
 // TODO: Add
 //   Edit item
 //   Delete item
-//   I can totally get rid of the "item..." states and just use the "selected..." ones
 
-import {useState} from "react"
+import {useState, useEffect} from "react"
 import { formatCurrency } from "../utils/FormatCurrency"
 import CreatableSelect from 'react-select/creatable';
 import "../styles/NewTransactionModal.css"
 import initialItems from "../mock-data/mockItems";
 import initialMerchants from "../mock-data/mockMerchants";
-import initialAccounts from "../mock-data/mockAccounts";
 import InitialZipCodesAndRates from "../mock-data/ZipCodes";
 import TaxCategories from "../mock-data/taxCategories";
-import BudgetCategories from "../mock-data/budgetCategories";
 import CommonNames from "../mock-data/commonNames";
+import Modal from "../modals/AddModal";
+import { convertObjectsToOptions } from "../utils/ConvertToOptions";
+import { fetchMerchantsForUser, fetchCategoriesForUser, createCategoryForUser } from "../api";
+import NewMerchantModal from "./NewMerchantModal";
+import AccountSelectDropdown from "../components/AccountSelectDropdown";
 
 function NewTransactionModal({transactions}){
     // Initial Stuff
     const [allMerchants, setAllMerchants] = useState(initialMerchants);
-    const [allAccounts, setAllAccounts] = useState(initialAccounts);
     const [allItems, setAllItems] = useState(initialItems);
 
     const [items, setItems] = useState([])
     const [selectableItems, setSelectableItems] = useState(initialItems);
     const [selectableZipCodes, setSelectableZipCodes] = useState(InitialZipCodesAndRates);
     const [taxCategories, setTaxCategories] = useState(TaxCategories)
-    const [budgetCategories, setBudgetCategories] = useState(BudgetCategories)
+    const [budgetCategories, setBudgetCategories] = useState([])
     const [commonNames, setCommonNames] = useState(CommonNames)
 
     // Selected Stuff
@@ -33,8 +34,8 @@ function NewTransactionModal({transactions}){
     const [selectedMerchant, setSelectedMerchant] = useState({label:"Select or Create Merchant", value:{}})
     const [selectedAccount, setSelectedAccount] = useState({label:"Select or Create Account", value:{}})
     const [selectedZipCode, setSelectedZipCode] = useState({label:84005, value:{zipCode:84005,taxRegionName:"UTAH CO TR",taxRate:0.0735}})
-    const [selectedTaxCategory, setSelectedTaxCategory] = useState({label:"Select Tax Category", value:""})
-    const [selectedBudgetCategory, setSelectedBudgetCategory] = useState({label:"Select or Create Budget Category", value:""})
+    const [selectedTaxCategory, setSelectedTaxCategory] = useState({label:"Select Tax Category", value:{}})
+    const [selectedBudgetCategory, setSelectedBudgetCategory] = useState({label:"Select or Create Budget Category", value:{}})
     const [selectedCommonName, setSelectedCommonName] = useState({label:"Select or Create Common Name", value:""})
     const [transactionDate, setTransactionDate] = useState('')
 
@@ -47,6 +48,8 @@ function NewTransactionModal({transactions}){
     const [itemTaxRate, setItemTaxRate] = useState('')
 
     const [shouldCreateNewItem, setShouldCreateNewItem] = useState(false)
+    const [isNewMerchantModalOpen, setIsNewMerchantModalOpen] = useState(false)
+    const [newMerchantName, setNewMerchantName] = useState('')
 
     // Totals
     const [transactionTotal, setTransactionTotal] = useState(0)
@@ -56,6 +59,31 @@ function NewTransactionModal({transactions}){
     const [budgetSummary, setBudgetSummary] = useState(new Map())
 
     const [descriptionMap, setDescriptionMap] = useState(new Map())
+
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [merchants, categories] = await Promise.all([
+                    fetchMerchantsForUser(1),
+                    fetchCategoriesForUser(1),
+                ]);
+                setAllMerchants(convertObjectsToOptions(merchants));
+                setBudgetCategories(convertObjectsToOptions(categories));
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) {
+        setAllMerchants({label:"Loading...", value:{}})
+    }
 
     const addItem = (event) => {
         event.preventDefault()
@@ -327,24 +355,31 @@ function NewTransactionModal({transactions}){
     }
 
     const handleBudgetCategoryChange = (budgetCategory) => {
+        console.log(budgetCategory)
         setSelectedBudgetCategory(budgetCategory)
     }
+
+    const handleCategoryCreate = async(newCategoryName) => {
+        let category = {
+            "name": newCategoryName,
+        }
+
+        try {
+            const response = await createCategoryForUser(1, category);
+            console.log('Category created:', response);
+            setBudgetCategories(convertObjectsToOptions(response))
+        } catch (error) {
+            console.error('Error creating category:', error);
+        } finally {
+            setSelectedBudgetCategory({label:newCategoryName, value:{name:newCategoryName}})
+        }
+    };
 
     const handleTaxRateChange = (e) => {
         let taxRate = e.target.value
         setItemTaxRate(taxRate)
 
         calculateTotals(itemUnitPrice, taxRate, itemQuantity, itemDiscount)
-    }
-
-    const handleAccountChange = (account) => {
-        setSelectedAccount(account)
-    }
-
-    const handleAccountCreate = (account) => {
-        const newAccount = { value: {name:account}, label: account };
-        setSelectedAccount(newAccount);
-        setAllAccounts([...allAccounts, newAccount])
     }
 
     const handleZipcodeChange = (zipcode) => {
@@ -387,12 +422,29 @@ function NewTransactionModal({transactions}){
         return useTaxRate
     }
 
-    const handleMerchantCreate = (merchantName) => {
-        // go to BE to get the ID
-        // setSelectedMerchant(newMerchant)
+    const openMerchantCreateModal = (merchantName) => {
+        console.log(merchantName)   
+        setIsNewMerchantModalOpen(true)
+        setNewMerchantName(merchantName)
     }
 
+    const handleCloseMerchantModal = async(event) => {
+        event.preventDefault()
+        try {
+            const response = await fetchMerchantsForUser(1);
+            console.log('Merchants fetched:', response);
+            setAllMerchants(convertObjectsToOptions(response))
+        } catch (error) {
+            console.error('Error fetching merchants:', error);
+        } finally {
+            setIsNewMerchantModalOpen(false);
+            setSelectedMerchant({label:newMerchantName, value:{name:newMerchantName}})
+        }
+    };
+
+
     const handleMerchantChange = (selectedMerchant) => {
+        console.log(selectedMerchant)
         setSelectedMerchant(selectedMerchant)
 
         let filteredItems = allItems.filter(item => (
@@ -400,24 +452,31 @@ function NewTransactionModal({transactions}){
         ))
 
         setSelectableItems([...filteredItems])
-
         setSelectedItem({label:"Select or Create Item", value:{}})
 
         if(selectedMerchant.value.taxCategory === undefined){
-            setSelectedTaxCategory({label:"Select Tax Category", value:""})
+            setSelectedTaxCategory({label:"Select Tax Category", value:{}})
             setItemTaxRate("")
         } else{
-            let taxCategory = selectedMerchant.value.taxCategory
-            setSelectedTaxCategory({label:taxCategory, value:taxCategory})
+            if(selectedMerchant.value.taxCategory.id === 0){
+                setSelectedTaxCategory({label:"Select Tax Category", value:{}})
+            } else{
+                let taxCategory = selectedMerchant.value.taxCategory
+                setSelectedTaxCategory(convertObjectsToOptions([taxCategory])[0])
 
-            setTaxRateFromTaxCategory(taxCategory, selectedZipCode)
+                setTaxRateFromTaxCategory(taxCategory, selectedZipCode)
+            }
         }
 
         if(selectedMerchant.value.budgetCategory === undefined){
-            setSelectedBudgetCategory({label:"Select Budget Category", value:""})
+            setSelectedBudgetCategory({label:"Select Budget Category", value:{}})
         } else{
-            let budgetCategory = selectedMerchant.value.budgetCategory
-            setSelectedBudgetCategory({label:budgetCategory, value:budgetCategory})
+            if(selectedMerchant.value.budgetCategory.id === 0){
+                setSelectedTaxCategory({label:"Select Tax Category", value:{}})
+            } else{
+                let budgetCategory = selectedMerchant.value.budgetCategory
+                setSelectedBudgetCategory(convertObjectsToOptions([budgetCategory])[0])
+            }
         }
 
         setItemUnitPrice("")
@@ -478,140 +537,170 @@ function NewTransactionModal({transactions}){
         }),
     };
 
+    const getModalStyle = () => {
+        return {
+            width: '30%',
+            height: 'auto',
+            zIndex: '100000',
+            backgroundColor: 'white',
+            padding: '20px',
+            borderRadius: '8px',
+            position: 'relative',
+        }
+    }
+
     return (
-        <div className="new-transaction-modal">
-            <h2 className="modal-title">New Transaction</h2>
-            <div className="new-transaction-modal-top-section">
-              <div className="add-item-form-section">
-                  <form className="add-item-form-and-button" onSubmit={addItem}>
-                    <div className="add-item-form">
-                        <div className="add-item-form-input">
-                          <div className="form-group">
-                              <label htmlFor="date">Transaction Date:</label>
-                              <input id="date" type="date" value={transactionDate} onChange={handleTransactionDateSelect}></input>
-                          </div>
-                          <div className="form-group">
-                              <label htmlFor="merchantName">Merchant:</label>
-                              <CreatableSelect
-                                   id="merchantName"
-                                   value={selectedMerchant}
-                                   onChange={handleMerchantChange}
-                                   onCreateOption={handleMerchantCreate}
-                                   options={allMerchants}
-                                   placeholder="Select or Create Merchant"
-                                   isSearchable
-                                   styles={customStyles}
-                              />
-                          </div>
-                          <div className="form-group">
-                              <label htmlFor="account">Account:</label>
-                              <CreatableSelect
-                                   id="account"
-                                   value={selectedAccount}
-                                   onChange={handleAccountChange}
-                                   onCreateOption={handleAccountCreate}
-                                   options={allAccounts}
-                                   placeholder="Select or Create Account"
-                                   isSearchable
-                                   styles={customStyles}
-                              />
-                          </div>
-                          <div className="form-group">
-                              <label htmlFor="zipcode">ZipCode:</label>
-                              <CreatableSelect
-                                   id="zipcode"
-                                   value={selectedZipCode}
-                                   onChange={handleZipcodeChange}
-                                   options={selectableZipCodes}
-                                   placeholder="Select ZipCode"
-                                   isSearchable
-                                   styles={customStyles}
-                              />
-                          </div>
+        <div>
+            <div>
+                {isNewMerchantModalOpen && (
+                <Modal 
+                    modalStyle={getModalStyle()}
+                    isOpen={isNewMerchantModalOpen} 
+                    onClose={handleCloseMerchantModal}
+                >
+                    <NewMerchantModal 
+                        newMerchantName={newMerchantName} 
+                        budgetCategories={budgetCategories} 
+                        taxCategories={taxCategories}
+                        selectedBudgetCategory={selectedBudgetCategory}
+                        selectedTaxCategory={selectedTaxCategory}
+                        setSelectedMerchant={setSelectedMerchant}
+                        setSelectedBudgetCategory={setSelectedBudgetCategory}
+                        setIsNewMerchantModalOpen={setIsNewMerchantModalOpen}
+                        setAllMerchants={setAllMerchants}
+                        setBudgetCategories={setBudgetCategories}
+                    />
+                </Modal>
+                )}
+            </div>
+            <div className="new-transaction-modal">
+                <h2 className="modal-title">New Transaction</h2>
+                <div className="new-transaction-modal-top-section">
+                <div className="add-item-form-section">
+                    <form className="add-item-form-and-button" onSubmit={addItem}>
+                        <div className="add-item-form">
+                            <div className="add-item-form-input">
+                            <div className="form-group">
+                                <label htmlFor="date">Transaction Date:</label>
+                                <input id="date" type="date" value={transactionDate} onChange={handleTransactionDateSelect}></input>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="merchantName">Merchant:</label>
+                                <CreatableSelect
+                                    id="merchantName"
+                                    className={isNewMerchantModalOpen ? "hide-parent-modal" : ""}
+                                    value={selectedMerchant}
+                                    onChange={handleMerchantChange}
+                                    onCreateOption={openMerchantCreateModal}
+                                    options={allMerchants}
+                                    placeholder="Select or Create Merchant"
+                                    isSearchable
+                                    styles={customStyles}
+                                />
+                            </div>
+                            <AccountSelectDropdown id="account" selectedAccount={selectedAccount} setSelectedAccount={setSelectedAccount} isNewMerchantModalOpen={isNewMerchantModalOpen}/>
+                            <div className="form-group">
+                                <label htmlFor="zipcode">ZipCode:</label>
+                                <CreatableSelect
+                                    id="zipcode"
+                                    className={isNewMerchantModalOpen ? "hide-parent-modal" : ""}
+                                    value={selectedZipCode}
+                                    onChange={handleZipcodeChange}
+                                    options={selectableZipCodes}
+                                    placeholder="Select ZipCode"
+                                    isSearchable
+                                    styles={customStyles}
+                                />
+                            </div>
+                            </div>
+                            <div>
+                            <div className="form-group">
+                                <label htmlFor="itemName">Item Name:</label>
+                                <CreatableSelect
+                                id="itemName"
+                                className={isNewMerchantModalOpen ? "hide-parent-modal" : ""}
+                                value={selectedItem}
+                                onChange={handleItemChange}
+                                onCreateOption={handleItemCreate}
+                                options={selectableItems}
+                                placeholder="Select or Create Item"
+                                isSearchable
+                                styles={customStyles}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="commonName">Common Name:</label>
+                                <CreatableSelect
+                                    id="commonName"
+                                    className={isNewMerchantModalOpen ? "hide-parent-modal" : ""}
+                                    value={selectedCommonName}
+                                    onChange={handleCommonNameChange}
+                                    onCreateOption={handleCommonNameCreate}
+                                    options={commonNames}
+                                    placeholder="Select or Create Common Name"
+                                    isSearchable
+                                    styles={customStyles}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="budgetCategory">Budget Category:</label>
+                                <CreatableSelect
+                                    id="budgetCategory"
+                                    className={isNewMerchantModalOpen ? "hide-parent-modal" : ""}
+                                    value={selectedBudgetCategory}
+                                    onChange={handleBudgetCategoryChange}
+                                    options={budgetCategories}
+                                    placeholder="Select or Create Budget Category"
+                                    isSearchable
+                                    styles={customStyles}
+                                    onCreateOption={handleCategoryCreate}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="taxCategory">Tax Category:</label>
+                                <CreatableSelect
+                                    id="taxCategory"
+                                    className={isNewMerchantModalOpen ? "hide-parent-modal" : ""}
+                                    value={selectedTaxCategory}
+                                    onChange={handleTaxCategoryChange}
+                                    options={taxCategories}
+                                    placeholder="Select Tax Category"
+                                    isSearchable
+                                    styles={customStyles}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="taxRate">Tax Rate:</label>
+                                <input id="taxRate" type="text" value={itemTaxRate} onChange={handleTaxRateChange}></input>
+                            </div>
+                            <hr/>
+                            <div className="form-group">
+                                <label htmlFor="unitPrice">Unit Price:</label>
+                                <input id="unitPrice" min="1" type="number" step="any" value={itemUnitPrice} onChange={handleUnitPriceChange}></input>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="discount">Discount:</label>
+                                <input id="discount" min="1" type="number" step="any" placeholder="Enter a positive value" value={itemDiscount} onChange={handleDiscountChange}></input>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="quantity">Quantity:</label>
+                                <input id="quantity" min="1" type="number" value={itemQuantity} onChange={handleQuantityChange}></input>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="taxTotal">Tax Total:</label>
+                                <input id="taxTotal" type="number" step="any" value={itemTaxTotal} onChange={handleTaxTotalChange}></input>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="total">Total:</label>
+                                <input id="total" min="1" type="number" step="any" value={itemTotal} onChange={handleTotalChange}></input>
+                            </div>
                         </div>
-                        <div>
-                          <div className="form-group">
-                            <label htmlFor="itemName">Item Name:</label>
-                            <CreatableSelect
-                               id="itemName"
-                               value={selectedItem}
-                               onChange={handleItemChange}
-                               onCreateOption={handleItemCreate}
-                               options={selectableItems}
-                               placeholder="Select or Create Item"
-                               isSearchable
-                               styles={customStyles}
-                            />
-                          </div>
-                          <div className="form-group">
-                              <label htmlFor="commonName">Common Name:</label>
-                              <CreatableSelect
-                                 id="commonName"
-                                 value={selectedCommonName}
-                                 onChange={handleCommonNameChange}
-                                 onCreateOption={handleCommonNameCreate}
-                                 options={commonNames}
-                                 placeholder="Select or Create Common Name"
-                                 isSearchable
-                                 styles={customStyles}
-                              />
-                          </div>
-                          <div className="form-group">
-                              <label htmlFor="budgetCategory">Budget Category:</label>
-                              <CreatableSelect
-                                 id="budgetCategory"
-                                 value={selectedBudgetCategory}
-                                 onChange={handleBudgetCategoryChange}
-                                 options={budgetCategories}
-                                 placeholder="Select or Create Budget Category"
-                                 isSearchable
-                                 styles={customStyles}
-                              />
-                          </div>
-                          <div className="form-group">
-                              <label htmlFor="taxCategory">Tax Category:</label>
-                              <CreatableSelect
-                                 id="taxCategory"
-                                 value={selectedTaxCategory}
-                                 onChange={handleTaxCategoryChange}
-                                 options={taxCategories}
-                                 placeholder="Select Tax Category"
-                                 isSearchable
-                                 styles={customStyles}
-                              />
-                          </div>
-                          <div className="form-group">
-                              <label htmlFor="taxRate">Tax Rate:</label>
-                              <input id="taxRate" type="text" value={itemTaxRate} onChange={handleTaxRateChange}></input>
-                          </div>
-                          <hr/>
-                          <div className="form-group">
-                              <label htmlFor="unitPrice">Unit Price:</label>
-                              <input id="unitPrice" min="1" type="number" step="any" value={itemUnitPrice} onChange={handleUnitPriceChange}></input>
-                         </div>
-                         <div className="form-group">
-                             <label htmlFor="discount">Discount:</label>
-                             <input id="discount" min="1" type="number" step="any" placeholder="Enter a positive value" value={itemDiscount} onChange={handleDiscountChange}></input>
-                         </div>
-                         <div className="form-group">
-                             <label htmlFor="quantity">Quantity:</label>
-                             <input id="quantity" min="1" type="number" value={itemQuantity} onChange={handleQuantityChange}></input>
-                         </div>
-                         <div className="form-group">
-                             <label htmlFor="taxTotal">Tax Total:</label>
-                             <input id="taxTotal" type="number" step="any" value={itemTaxTotal} onChange={handleTaxTotalChange}></input>
-                         </div>
-                         <div className="form-group">
-                             <label htmlFor="total">Total:</label>
-                             <input id="total" min="1" type="number" step="any" value={itemTotal} onChange={handleTotalChange}></input>
-                         </div>
-                       </div>
-                   </div>
-                   <div className="add-item-button">
-                      <button type="submit" disabled={isFormValid()}>Add Item</button>  
-                   </div>
-                </form>
-              </div>
+                    </div>
+                    <div className="add-item-button">
+                        <button type="submit" disabled={isFormValid()}>Add Item</button>  
+                    </div>
+                    </form>
+                </div>
               <div className="transaction-summary">
                   <table>
                    <caption>Summary</caption>
@@ -675,6 +764,7 @@ function NewTransactionModal({transactions}){
               </table>
             </div>
         </div>
+    </div>
     );
 }
 
