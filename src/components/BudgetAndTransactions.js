@@ -10,7 +10,7 @@ let transactions = [{"date":"6/26/2024", "account":"Citi", "total":-65, "categor
 function BudgetAndTransactions() {
     return (
         <div>
-            <h1>June</h1>
+            <h1>August</h1>
             <div className="main-container">
                 <div className="budget-section">
                  <BudgetAmounts budgetAmounts={budgetAmounts}/>

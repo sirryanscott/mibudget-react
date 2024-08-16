@@ -1,17 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { formatCurrency } from "../utils/FormatCurrency";
 import "../styles/BudgetAndTransactions.css"
 import Modal from "../modals/AddModal";
+import CreatableSelect from 'react-select/creatable';
 import NewTransactionModal from "../modals/NewTransactionModal";
 import NewIncomeTransactionModal from "../modals/NewIncomeTransactionModal";
 import NewBankTransferModal from "../modals/NewBankTransferModal";
 import { fetchTransactionsForUser } from "../api";
+import { MerchantContext } from "../GlobalStateContext/MerchantStateProvider";
 
 function TransactionsSection() {
-    const [selectedContent, setSelectedContent] = useState('');
+    const { selectedMerchant, setSelectedMerchant } = useContext(MerchantContext);
+    const [selectedContent, setSelectedContent] = useState({value: 'newTransaction', label: 'New Transaction'});
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [transactions, setTransactions] = useState([])
+    const [content, setContent] = useState([
+        { value: 'newTransaction', label: 'New Transaction' },
+        { value: 'newIncome', label: 'New Income Transaction' },
+        { value: 'accountTransfer', label: 'New Account Transfer' }
+    ])
 
     useEffect(() => {
         const getTransactions = async () => {
@@ -35,12 +43,12 @@ function TransactionsSection() {
 
 
     const handleChange = (event) => {
-        setSelectedContent(event.target.value);
+        setSelectedContent(event);
     };
 
     const handleOpenModal = () => {
         setIsModalOpen(true);
-        setSelectedContent('newTransaction');
+        setSelectedContent({value: 'newTransaction', label: 'New Transaction'});
     };
 
     const handleCloseModal = () => {
@@ -53,7 +61,8 @@ function TransactionsSection() {
     }
 
     const renderContent = () => {
-        switch (selectedContent) {
+        console.log(selectedContent)
+        switch (selectedContent.value) {
           case 'newTransaction':
             return (
                 <NewTransactionModal transactions={transactions}/>
@@ -72,16 +81,19 @@ function TransactionsSection() {
     };
 
     const getModalStyle = () => {
-        switch (selectedContent) {
+        switch (selectedContent.value) {
             case 'newTransaction':
                 return { 
                     backgroundColor: 'white',
                     padding: '20px',
                     borderRadius: '8px',
                     position: 'relative',
-                    width: '90%',
                     maxHeight: '90%',
                     overflowY: 'auto',
+                    display:'flex',
+                    flexDirection:'column',
+                    justifyContent:'center',
+                    alignItems: 'center',
                 };
             case 'newIncome':
             case 'accountTransfer':
@@ -90,12 +102,21 @@ function TransactionsSection() {
                     padding: '20px',
                     borderRadius: '8px',
                     position: 'relative',
-                    width: '35%',
                     maxHeight: '90%',
-                    overflowY: 'auto',
+                    display:'flex',
+                    flexDirection:'column',
+                    justifyContent:'center',
+                    alignItems: 'center',
                 };
             default:
-                return {};
+                return {
+                    backgroundColor: 'white',
+                    padding: '20px',
+                    borderRadius: '8px',
+                    position: 'relative',
+                    width: '35%',
+                    maxHeight: '90%',
+                };
         }
     };    
 
@@ -111,6 +132,10 @@ function TransactionsSection() {
         return ''
     }
 
+    const PrintToConsole = (transaction) => {
+        console.log(transaction)
+    }
+
     return (
         <div>
             <h3>
@@ -122,12 +147,12 @@ function TransactionsSection() {
                       onClose={handleCloseModal}
                       onUpdateItems={handleUpdateTransactions}
                   >
-                          <select value={selectedContent} onChange={handleChange}>
-                            <option value="">Transaction Type</option>
-                            <option value="newTransaction">New Transaction</option>
-                            <option value="newIncome">New Income</option>
-                            <option value="accountTransfer">Account Transfer</option>
-                          </select>
+                    <CreatableSelect
+                        className="transaction-dropdown"
+                        value={selectedContent}
+                        onChange={handleChange}
+                        options={content}
+                    />
                           {renderContent()}
                   </Modal>
                 )}
@@ -145,15 +170,15 @@ function TransactionsSection() {
               </tr>
                 {transactions?.map((transaction, index) => (
                     <React.Fragment key={transaction.id}>
+                    {PrintToConsole(transaction)}
                         <tr className={getTransactionRowStyle(transaction)} key={transaction.id}> {/* change key to be the id of the transaction */}
                            <td><input style={transaction.isCC ? {} : {display:'none'}} type="checkbox" id={index} name="paid"/></td>
                            <td><input type="checkbox" id={index} name="cleared"/></td>
                            <td>{transaction.date}</td>
                            <td>{formatCurrency(transaction.totalAmount)}</td>
                            <td>{transaction.merchant.name}</td>
-                           <td>Category</td>
-                           {/*<td>{transaction.category}</td>*/}
-                           <td>{transaction.paymentMethod.nickname}</td>
+                           <td>{transaction.category}</td>
+                           <td>{transaction.paymentMethod.name}</td>
                            <td>{transaction.description}</td>
                         </tr>
                         {transaction.childTransactions && transaction.childTransactions.map((child, i) => (
@@ -161,8 +186,8 @@ function TransactionsSection() {
                                <td></td>
                                <td></td>
                                <td></td>
-                               <td>{formatCurrency(child.total)}</td>
-                               <td>{child.merchant}</td>
+                               <td>{formatCurrency(child.totalAmount)}</td>
+                               <td>{child.merchant.name}</td>
                                <td>{child.category}</td>
                                <td>{child.account}</td>
                                <td>{child.description}</td>

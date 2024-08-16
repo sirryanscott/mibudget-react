@@ -8,12 +8,6 @@
     border-radius: 50%;
 }
 
-.modal-title {
-    margin-top: 3px;
-    margin-bottom: 3px;
-    padding: 0px;
-}
-
 .new-transaction-modal {
   display: flex;
   flex-direction: column;

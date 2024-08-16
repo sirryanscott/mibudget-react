@@ -1,6 +1,5 @@
 import Account from "./Account"
 let accounts = [{"name":"Checking", "pendingBalance":1000, "currentBalance":3500}]
-//let accounts = ["Checking"];
 
 function AccountsTable(){
     return (

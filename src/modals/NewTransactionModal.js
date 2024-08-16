@@ -1,42 +1,45 @@
 // TODO: Add
 //   Edit item
 //   Delete item
+// maybe a function for clearing selections
 
-import {useState, useEffect} from "react"
+import {useState, useEffect, useContext} from "react"
 import { formatCurrency } from "../utils/FormatCurrency"
 import CreatableSelect from 'react-select/creatable';
 import "../styles/NewTransactionModal.css"
 import initialItems from "../mock-data/mockItems";
-import initialMerchants from "../mock-data/mockMerchants";
 import InitialZipCodesAndRates from "../mock-data/ZipCodes";
 import TaxCategories from "../mock-data/taxCategories";
 import CommonNames from "../mock-data/commonNames";
 import Modal from "../modals/AddModal";
 import { convertObjectsToOptions } from "../utils/ConvertToOptions";
-import { fetchMerchantsForUser, fetchCategoriesForUser, createCategoryForUser } from "../api";
 import NewMerchantModal from "./NewMerchantModal";
-import AccountSelectDropdown from "../components/AccountSelectDropdown";
+import AccountSelector from "../components/DropdownComponents/AccountSelector";
+import CategorySelector from "../components/DropdownComponents/CategorySelector";
+import MerchantSelector from "../components/DropdownComponents/MerchantSelector";
+import { MerchantContext } from "../GlobalStateContext/MerchantStateProvider";
+import { CategoryContext } from "../GlobalStateContext/CategoryStateProvider";
+import { AccountPlaceholder, BudgetCategoryPlaceholder, CommonNamePlaceholder, ItemPlaceholder, MerchantPlaceholder, TaxCategoryPlaceholder } from "../constants/Placeholders";
 
 function NewTransactionModal({transactions}){
+    const {merchants, selectedMerchant, setSelectedMerchant} = useContext(MerchantContext)
+    const {categories} = useContext(CategoryContext)
     // Initial Stuff
-    const [allMerchants, setAllMerchants] = useState(initialMerchants);
     const [allItems, setAllItems] = useState(initialItems);
 
     const [items, setItems] = useState([])
     const [selectableItems, setSelectableItems] = useState(initialItems);
     const [selectableZipCodes, setSelectableZipCodes] = useState(InitialZipCodesAndRates);
     const [taxCategories, setTaxCategories] = useState(TaxCategories)
-    const [budgetCategories, setBudgetCategories] = useState([])
     const [commonNames, setCommonNames] = useState(CommonNames)
 
     // Selected Stuff
-    const [selectedItem, setSelectedItem] = useState({label:"Select or Create Item", value:{}})
-    const [selectedMerchant, setSelectedMerchant] = useState({label:"Select or Create Merchant", value:{}})
-    const [selectedAccount, setSelectedAccount] = useState({label:"Select or Create Account", value:{}})
+    const [selectedItem, setSelectedItem] = useState(ItemPlaceholder)
+    const [selectedAccount, setSelectedAccount] = useState(AccountPlaceholder)
     const [selectedZipCode, setSelectedZipCode] = useState({label:84005, value:{zipCode:84005,taxRegionName:"UTAH CO TR",taxRate:0.0735}})
-    const [selectedTaxCategory, setSelectedTaxCategory] = useState({label:"Select Tax Category", value:{}})
-    const [selectedBudgetCategory, setSelectedBudgetCategory] = useState({label:"Select or Create Budget Category", value:{}})
-    const [selectedCommonName, setSelectedCommonName] = useState({label:"Select or Create Common Name", value:""})
+    const [selectedTaxCategory, setSelectedTaxCategory] = useState(TaxCategoryPlaceholder)
+    const [selectedBudgetCategory, setSelectedBudgetCategory] = useState(BudgetCategoryPlaceholder)
+    const [selectedCommonName, setSelectedCommonName] = useState(CommonNamePlaceholder)
     const [transactionDate, setTransactionDate] = useState('')
 
     const [itemUnitPrice, setItemUnitPrice] = useState('')
@@ -60,30 +63,15 @@ function NewTransactionModal({transactions}){
 
     const [descriptionMap, setDescriptionMap] = useState(new Map())
 
-    const [loading, setLoading] = useState(false);
-
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [merchants, categories] = await Promise.all([
-                    fetchMerchantsForUser(1),
-                    fetchCategoriesForUser(1),
-                ]);
-                setAllMerchants(convertObjectsToOptions(merchants));
-                setBudgetCategories(convertObjectsToOptions(categories));
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    if (loading) {
-        setAllMerchants({label:"Loading...", value:{}})
-    }
+        if (selectedMerchant === null || JSON.stringify(selectedMerchant.value) === '{}') {
+            setSelectableItems(allItems)
+            clearItemFields()
+            clearItemTotals()
+            return;
+        }
+        merchantChange()
+    }, [selectedMerchant])
 
     const addItem = (event) => {
         event.preventDefault()
@@ -120,7 +108,7 @@ function NewTransactionModal({transactions}){
             taxAmount: -parseFloat(itemTaxTotal),
             total: -parseFloat(itemTotal),
             budgetCategory: budgetCategory,
-            merchant: {id: selectedMerchant.value.id}
+            merchant: selectedMerchant,
         }
       
         if(shouldCreateNewItem) {
@@ -137,13 +125,13 @@ function NewTransactionModal({transactions}){
             setDescriptionMap(prevMap => {
                 const newMap = new Map(prevMap);
 
-                let currentCategoryDescription = newMap.get(item.budgetCategory) || [];
+                let currentCategoryDescription = newMap.get(item.budgetCategory.name) || [];
 
                 if (!currentCategoryDescription.includes(selectedCommonName.value)) {
                     currentCategoryDescription.push(selectedCommonName.value);
                 }
 
-                newMap.set(item.budgetCategory, currentCategoryDescription);
+                newMap.set(item.budgetCategory.name, currentCategoryDescription);
 
                 return newMap;
             });
@@ -183,18 +171,17 @@ function NewTransactionModal({transactions}){
         }
 
         let budgetCategory = selectedOption.value.budgetCategory
-        for(let i = 0; i < budgetCategories.length; i++){
-            if(budgetCategories[i].value === budgetCategory) {
-                setSelectedBudgetCategory(budgetCategories[i])
+        for(let i = 0; i < categories.length; i++){
+            if(categories[i].value.name === budgetCategory) {
+                setSelectedBudgetCategory(categories[i])
             }
         }
 
         if(JSON.stringify(selectedMerchant.value) === '{}'){
             let merchantId = selectedOption.value.merchant.id
-            for(let i = 0; i < allMerchants.length; i++){
-            console.log(allMerchants[i])
-                if(merchantId === allMerchants[i].value.id){
-                    let newSelectedMerchant = allMerchants[i]
+            for(let i = 0; i < merchants.length; i++){
+                if(merchantId === merchants[i].value.id){
+                    let newSelectedMerchant = merchants[i]
                     setSelectedMerchant(newSelectedMerchant)
 
                     let filteredItems = allItems.filter(item => (
@@ -223,9 +210,9 @@ function NewTransactionModal({transactions}){
 
     const handleItemCreate = (inputValue) => {
         setShouldCreateNewItem(true)
-        setSelectedCommonName({label: "Select or Create Common Name", value:""})
-        setSelectedTaxCategory({label: "Select Tax Category", value:""})
-        setSelectedBudgetCategory({label:"Select or Create Budget Category", value:""})
+        setSelectedCommonName(CommonNamePlaceholder)
+        setSelectedTaxCategory(TaxCategoryPlaceholder)
+        setSelectedBudgetCategory(BudgetCategoryPlaceholder)
         setItemTaxRate("")
         setSelectedItem({value: {itemName: inputValue}, label:inputValue});
     };
@@ -250,16 +237,7 @@ function NewTransactionModal({transactions}){
             return newMap;
         });
 
-        setSelectedItem({label:"Select or Create Item", value:{}})
-        setSelectedTaxCategory({label:"Select Tax Category", value:""})
-        setSelectedBudgetCategory({label:"Select or Create Budget Category", value:""})
-        setItemTaxRate("")
-        setItemUnitPrice("")
-        setItemQuantity("")
-        setItemDiscount("")
-        setSelectedCommonName({label:"Select or Create Common Name", value:""})
-        setItemTaxTotal("")
-        setItemTotal("")
+        clearItemFields()
     }
 
     const addTransaction = (event) => {
@@ -274,15 +252,15 @@ function NewTransactionModal({transactions}){
             transaction = {
                 "category":"Multiple", 
                 "date": transactionDate, 
-                "merchant": selectedMerchant.value.name, 
-                "paymentMethod": {"nickname":selectedAccount.value.nickname}, 
+                "merchant": selectedMerchant.value, 
+                "paymentMethod": selectedAccount.value,
                 "totalAmount":transactionTotal, 
                 "isCC": selectedAccount.value.isCC
             }
             date = ""
         }
         Array.from(budgetSummary.entries()).forEach(([key, value]) => {
-            let itemsDescription = descriptionMap.get(key)
+            let itemsDescription = descriptionMap.get(key.name)
             let finalDescription = ""
 
             if(itemsDescription !== undefined){
@@ -294,10 +272,10 @@ function NewTransactionModal({transactions}){
                 }
             }
             let transaction = {
-                "category":key, 
+                "category":key.name, 
                 "date": date, 
-                "merchant": selectedMerchant.value.name, 
-                "paymentMethod": {"nickname": selectedAccount.value.nickname}, 
+                "merchant": selectedMerchant.value, 
+                "paymentMethod": selectedAccount.value,
                 "totalAmount":value.total, 
                 "description":finalDescription, 
                 "isCC": selectedAccount.value.isCC
@@ -316,21 +294,13 @@ function NewTransactionModal({transactions}){
             transactions.push(transaction)
         }
 
-        console.log(transaction)
-        console.log(transactions)
-
         setBudgetSummary(new Map())
+        setItems([])
+        clearBaseFields()
+        clearItemFields()
         setTransactionTotal(0)
         setTransactionTaxTotal(0)
         setTransactionUnitPriceTotal(0)
-        setItems([])
-        setTransactionDate('')
-        setSelectedAccount({label:"Select or Create Account", value:{}})
-        setSelectedItem({label:"Select or Create Item", value:{}})
-        setSelectedMerchant({label:"Select or Create Merchant", value:{}})
-        setItemUnitPrice("")
-        setItemTaxRate('')
-        setSelectableItems(allItems)
     }
 
     const handleCommonNameCreate = (commonName) => {
@@ -353,27 +323,6 @@ function NewTransactionModal({transactions}){
 
         calculateTotals(itemUnitPrice, taxRate, itemQuantity, itemDiscount)
     }
-
-    const handleBudgetCategoryChange = (budgetCategory) => {
-        console.log(budgetCategory)
-        setSelectedBudgetCategory(budgetCategory)
-    }
-
-    const handleCategoryCreate = async(newCategoryName) => {
-        let category = {
-            "name": newCategoryName,
-        }
-
-        try {
-            const response = await createCategoryForUser(1, category);
-            console.log('Category created:', response);
-            setBudgetCategories(convertObjectsToOptions(response))
-        } catch (error) {
-            console.error('Error creating category:', error);
-        } finally {
-            setSelectedBudgetCategory({label:newCategoryName, value:{name:newCategoryName}})
-        }
-    };
 
     const handleTaxRateChange = (e) => {
         let taxRate = e.target.value
@@ -422,69 +371,52 @@ function NewTransactionModal({transactions}){
         return useTaxRate
     }
 
-    const openMerchantCreateModal = (merchantName) => {
-        console.log(merchantName)   
-        setIsNewMerchantModalOpen(true)
-        setNewMerchantName(merchantName)
-    }
-
     const handleCloseMerchantModal = async(event) => {
         event.preventDefault()
-        try {
-            const response = await fetchMerchantsForUser(1);
-            console.log('Merchants fetched:', response);
-            setAllMerchants(convertObjectsToOptions(response))
-        } catch (error) {
-            console.error('Error fetching merchants:', error);
-        } finally {
-            setIsNewMerchantModalOpen(false);
-            setSelectedMerchant({label:newMerchantName, value:{name:newMerchantName}})
-        }
+        setIsNewMerchantModalOpen(false);
+        setSelectedMerchant(MerchantPlaceholder)
     };
 
-
-    const handleMerchantChange = (selectedMerchant) => {
-        console.log(selectedMerchant)
-        setSelectedMerchant(selectedMerchant)
-
+    const merchantChange = () => {
+        console.log('selectedMerchant:', selectedMerchant)
+        console.log(categories)
         let filteredItems = allItems.filter(item => (
             item.value.merchant.id === selectedMerchant.value.id
         ))
 
         setSelectableItems([...filteredItems])
-        setSelectedItem({label:"Select or Create Item", value:{}})
 
-        if(selectedMerchant.value.taxCategory === undefined){
-            setSelectedTaxCategory({label:"Select Tax Category", value:{}})
-            setItemTaxRate("")
-        } else{
-            if(selectedMerchant.value.taxCategory.id === 0){
-                setSelectedTaxCategory({label:"Select Tax Category", value:{}})
+        let selectedItemInList = filteredItems.includes(selectedItem)
+        if(!selectedItemInList){
+            setSelectedItem(ItemPlaceholder)
+
+            if(selectedMerchant.value.taxCategory === undefined){
+                setSelectedTaxCategory(TaxCategoryPlaceholder)
+                setItemTaxRate("")
             } else{
-                let taxCategory = selectedMerchant.value.taxCategory
-                setSelectedTaxCategory(convertObjectsToOptions([taxCategory])[0])
+                if(selectedMerchant.value.taxCategory.id === 0){
+                    setSelectedTaxCategory(TaxCategoryPlaceholder)
+                } else{
+                    let taxCategory = selectedMerchant.value.taxCategory
+                    setSelectedTaxCategory(convertObjectsToOptions([taxCategory])[0])
 
-                setTaxRateFromTaxCategory(taxCategory, selectedZipCode)
+                    setTaxRateFromTaxCategory(taxCategory, selectedZipCode)
+                }
             }
-        }
 
-        if(selectedMerchant.value.budgetCategory === undefined){
-            setSelectedBudgetCategory({label:"Select Budget Category", value:{}})
-        } else{
-            if(selectedMerchant.value.budgetCategory.id === 0){
-                setSelectedTaxCategory({label:"Select Tax Category", value:{}})
+            if(selectedMerchant.value.budgetCategory === undefined){
+                setSelectedBudgetCategory(BudgetCategoryPlaceholder)
             } else{
-                let budgetCategory = selectedMerchant.value.budgetCategory
-                setSelectedBudgetCategory(convertObjectsToOptions([budgetCategory])[0])
+                if(selectedMerchant.value.budgetCategory.id === 0){
+                    setSelectedBudgetCategory(BudgetCategoryPlaceholder)
+                } else{
+                    let budgetCategory = selectedMerchant.value.budgetCategory
+                    setSelectedBudgetCategory(convertObjectsToOptions([budgetCategory])[0])
+                }
             }
-        }
 
-        setItemUnitPrice("")
-        setItemQuantity("")
-        setItemDiscount("")
-        setSelectedCommonName({label:"Select or Create Common Name", value:{}})
-        setItemTaxTotal("")
-        setItemTotal("")
+            clearItemTotals()
+        }
     }
 
     const handleTransactionDateSelect = (e) => {
@@ -521,11 +453,33 @@ function NewTransactionModal({transactions}){
     }
 
     const isFormValid = () => {
-        return itemUnitPrice === '' || selectedMerchant.value.name === undefined || transactionDate === '' || selectedAccount.value.nickname === undefined;
+        return itemUnitPrice === '' || JSON.stringify(selectedMerchant.value) === '{}' || transactionDate === '' || JSON.stringify(selectedAccount.value) === '{}';
     }
 
     const isSummaryValid = () => {
         return budgetSummary.size === 0;
+    }
+
+    const clearBaseFields = () => {
+        setTransactionDate('')
+        setSelectedAccount(AccountPlaceholder)
+        setSelectedMerchant(MerchantPlaceholder)
+    }
+
+    const clearItemFields = () => {
+        setSelectedItem(ItemPlaceholder)
+        setSelectedCommonName(CommonNamePlaceholder)
+        setSelectedTaxCategory(TaxCategoryPlaceholder)
+        setSelectedBudgetCategory(BudgetCategoryPlaceholder)
+    }
+
+    const clearItemTotals = () => {
+        setItemUnitPrice("")
+        setItemQuantity("")
+        setItemDiscount("")
+        setItemTaxRate("")
+        setItemTaxTotal("")
+        setItemTotal("")
     }
 
     const customStyles = {
@@ -560,21 +514,18 @@ function NewTransactionModal({transactions}){
                 >
                     <NewMerchantModal 
                         newMerchantName={newMerchantName} 
-                        budgetCategories={budgetCategories} 
+                        setMerchantName={setNewMerchantName}
                         taxCategories={taxCategories}
                         selectedBudgetCategory={selectedBudgetCategory}
                         selectedTaxCategory={selectedTaxCategory}
                         setSelectedMerchant={setSelectedMerchant}
                         setSelectedBudgetCategory={setSelectedBudgetCategory}
                         setIsNewMerchantModalOpen={setIsNewMerchantModalOpen}
-                        setAllMerchants={setAllMerchants}
-                        setBudgetCategories={setBudgetCategories}
                     />
                 </Modal>
                 )}
             </div>
             <div className="new-transaction-modal">
-                <h2 className="modal-title">New Transaction</h2>
                 <div className="new-transaction-modal-top-section">
                 <div className="add-item-form-section">
                     <form className="add-item-form-and-button" onSubmit={addItem}>
@@ -584,21 +535,8 @@ function NewTransactionModal({transactions}){
                                 <label htmlFor="date">Transaction Date:</label>
                                 <input id="date" type="date" value={transactionDate} onChange={handleTransactionDateSelect}></input>
                             </div>
-                            <div className="form-group">
-                                <label htmlFor="merchantName">Merchant:</label>
-                                <CreatableSelect
-                                    id="merchantName"
-                                    className={isNewMerchantModalOpen ? "hide-parent-modal" : ""}
-                                    value={selectedMerchant}
-                                    onChange={handleMerchantChange}
-                                    onCreateOption={openMerchantCreateModal}
-                                    options={allMerchants}
-                                    placeholder="Select or Create Merchant"
-                                    isSearchable
-                                    styles={customStyles}
-                                />
-                            </div>
-                            <AccountSelectDropdown id="account" selectedAccount={selectedAccount} setSelectedAccount={setSelectedAccount} isNewMerchantModalOpen={isNewMerchantModalOpen}/>
+                            <MerchantSelector id="merchantName" selectedMerchant={selectedMerchant} setSelectedMerchant={setSelectedMerchant} setNewMerchantName={setNewMerchantName} isNewMerchantModalOpen={isNewMerchantModalOpen} setIsNewMerchantModalOpen={setIsNewMerchantModalOpen}/>
+                            <AccountSelector id="account" selectedAccount={selectedAccount} setSelectedAccount={setSelectedAccount} isNewMerchantModalOpen={isNewMerchantModalOpen} setDefault={true}/>
                             <div className="form-group">
                                 <label htmlFor="zipcode">ZipCode:</label>
                                 <CreatableSelect
@@ -623,7 +561,7 @@ function NewTransactionModal({transactions}){
                                 onChange={handleItemChange}
                                 onCreateOption={handleItemCreate}
                                 options={selectableItems}
-                                placeholder="Select or Create Item"
+                                placeholder={ItemPlaceholder}
                                 isSearchable
                                 styles={customStyles}
                                 />
@@ -637,25 +575,12 @@ function NewTransactionModal({transactions}){
                                     onChange={handleCommonNameChange}
                                     onCreateOption={handleCommonNameCreate}
                                     options={commonNames}
-                                    placeholder="Select or Create Common Name"
+                                    placeholder={CommonNamePlaceholder}
                                     isSearchable
                                     styles={customStyles}
                                 />
                             </div>
-                            <div className="form-group">
-                                <label htmlFor="budgetCategory">Budget Category:</label>
-                                <CreatableSelect
-                                    id="budgetCategory"
-                                    className={isNewMerchantModalOpen ? "hide-parent-modal" : ""}
-                                    value={selectedBudgetCategory}
-                                    onChange={handleBudgetCategoryChange}
-                                    options={budgetCategories}
-                                    placeholder="Select or Create Budget Category"
-                                    isSearchable
-                                    styles={customStyles}
-                                    onCreateOption={handleCategoryCreate}
-                                />
-                            </div>
+                            <CategorySelector id="budgetCategory" selectedCategory={selectedBudgetCategory} setSelectedCategory={setSelectedBudgetCategory} isNewMerchantModalOpen={isNewMerchantModalOpen}/>
                             <div className="form-group">
                                 <label htmlFor="taxCategory">Tax Category:</label>
                                 <CreatableSelect
@@ -664,7 +589,7 @@ function NewTransactionModal({transactions}){
                                     value={selectedTaxCategory}
                                     onChange={handleTaxCategoryChange}
                                     options={taxCategories}
-                                    placeholder="Select Tax Category"
+                                    placeholder={TaxCategoryPlaceholder.label}
                                     isSearchable
                                     styles={customStyles}
                                 />
@@ -712,7 +637,7 @@ function NewTransactionModal({transactions}){
                    </tr>
                      {Array.from(budgetSummary.entries()).map(([key, value]) => (
                          <tr>
-                            <td>{key}</td>
+                            <td>{key.name}</td>
                             <td>{formatCurrency(value.subtotal)}</td>
                             <td>{formatCurrency(value.taxTotal)}</td>
                             <td>{formatCurrency(value.total)}</td>
@@ -758,7 +683,7 @@ function NewTransactionModal({transactions}){
                        <td>{item.taxRate}</td>
                        <td>{formatCurrency(item.taxAmount)}</td>
                        <td>{formatCurrency(item.total)}</td>
-                       <td>{item.budgetCategory}</td>
+                       <td>{item.budgetCategory.name}</td>
                     </tr>
                 ))}
               </table>

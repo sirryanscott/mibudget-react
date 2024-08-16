@@ -2,6 +2,7 @@ import {useState} from "react"
 import CreatableSelect from 'react-select/creatable';
 import "../styles/NewIncomeTransactionModal.css"
 import initialAccounts from "../mock-data/mockAccounts";
+import { AccountPlaceholder } from "../constants/Placeholders";
 
 function AddCategoryModal({transactions}){
     const [allAccounts, setAllAccounts] = useState(initialAccounts);
@@ -10,8 +11,8 @@ function AddCategoryModal({transactions}){
     const [description, setDescription] = useState('')
     const [totalAmount, setTotalAmount] = useState('')
 
-    const [selectedFromAccount, setSelectedFromAccount] = useState({label:"Select or Create Account", value:{}})
-    const [selectedToAccount, setSelectedToAccount] = useState({label:"Select or Create Account", value:{}})
+    const [selectedFromAccount, setSelectedFromAccount] = useState(AccountPlaceholder)
+    const [selectedToAccount, setSelectedToAccount] = useState(AccountPlaceholder)
 
     const addTransaction = (event) => {
         event.preventDefault()
@@ -33,8 +34,8 @@ function AddCategoryModal({transactions}){
             })
 
         setTransactionDate('')
-        setSelectedFromAccount({label:"Select or Create Account", value:{}})
-        setSelectedToAccount({label:"Select or Create Account", value:{}})
+        setSelectedFromAccount(AccountPlaceholder)
+        setSelectedToAccount(AccountPlaceholder)
         setTotalAmount('')
         setDescription('')
     }
@@ -92,7 +93,7 @@ function AddCategoryModal({transactions}){
                             onChange={handleFromAccountChange}
                             onCreateOption={handleAccountCreate}
                             options={allAccounts}
-                            placeholder="Select or Create Account"
+                            placeholder={AccountPlaceholder.label}
                             isSearchable
                             styles={customStyles}
                         />
@@ -105,7 +106,7 @@ function AddCategoryModal({transactions}){
                             onChange={handleToAccountChange}
                             onCreateOption={handleAccountCreate}
                             options={allAccounts}
-                            placeholder="Select or Create Account"
+                            placeholder={AccountPlaceholder.label}
                             isSearchable
                             styles={customStyles}
                         />

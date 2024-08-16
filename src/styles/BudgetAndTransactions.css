@@ -91,3 +91,10 @@ td.negative {
     text-align: center;
     width: 15px;
 }
+
+.transaction-dropdown {
+  width: 300px;
+  margin-bottom: 25px;
+  display:flex;
+  justify-content: center;
+}
