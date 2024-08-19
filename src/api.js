@@ -19,7 +19,6 @@ export const fetchTransactionsForUser = async (userId) => {
 };
 
 export const createTransactionForUser = async (userId, transaction) => {
-    console.log("HERE")
     const response = await axios.post(`${API_BASE_URL}/user/${userId}/transactions`, transaction);
     return response.data;
 };
@@ -30,7 +29,6 @@ export const fetchMerchantsForUser = async (userId) => {
 };
 
 export const createMerchantForUser = async (userId, merchant) => {
-    console.log(merchant)
     const response = await axios.post(`${API_BASE_URL}/user/${userId}/merchants`, merchant);
     return response.data;
 };
