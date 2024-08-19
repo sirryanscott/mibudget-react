@@ -158,45 +158,51 @@ function TransactionsSection() {
                   </Modal>
                 )}
             </h3>
-            <table className="budgets-container">
-              <tr>
-                  <th className="center-text">P</th>
-                  <th className="center-text">C</th>
-                  <th>Date</th>
-                  <th>Total Amount</th>
-                  <th>Merchant</th>
-                  <th>Category</th>
-                  <th>Account</th>
-                  <th>Description</th>
-              </tr>
-                {transactions?.map((transaction, index) => (
-                    <React.Fragment key={transaction.id}>
-                    {PrintToConsole(transaction)}
-                        <tr className={getTransactionRowStyle(transaction)} key={transaction.id}> {/* change key to be the id of the transaction */}
-                           <td><input style={transaction.isCC ? {} : {display:'none'}} type="checkbox" id={index} name="paid"/></td>
-                           <td><input type="checkbox" id={index} name="cleared"/></td>
-                           <td style={{ maxWidth: '70px' }}>{transaction.date.split(' ')[0]}</td>
-                           <td>{formatCurrency(transaction.totalAmount)}</td>
-                           <td>{transaction.merchant.name}</td>
-                           <td>{transaction.category}</td>
-                           <td>{transaction.paymentMethod.name}</td>
-                           <td>{transaction.description}</td>
+            <div className="transactions-container">
+                <table >
+                    <thead style={isModalOpen ? { zIndex: -1 } : {}}>
+                        <tr>
+                            <th className="center-text">P</th>
+                            <th className="center-text">C</th>
+                            <th>Date</th>
+                            <th>Total Amount</th>
+                            <th>Merchant</th>
+                            <th>Category</th>
+                            <th>Account</th>
+                            <th>Description</th>
                         </tr>
-                        {transaction.childTransactions && transaction.childTransactions.map((child, i) => (
-                            <tr className={getTransactionRowStyle(child)} key={i}> {/* change key to be the id of the transaction */}
-                               <td></td>
-                               <td></td>
-                               <td style={{ maxWidth: '70px' }}><img src={DownRightArrow} alt="My SVG" width="100" height="20" /></td>
-                               <td>{formatCurrency(child.totalAmount)}</td>
-                               <td>{child.merchant.name}</td>
-                               <td>{child.category}</td>
-                               <td>{transaction.paymentMethod.name}</td>
-                               <td>{child.description}</td>
-                            </tr>
+                    </thead>
+                    <tbody>
+                        {transactions?.map((transaction, index) => (
+                            <React.Fragment key={transaction.id}>
+                            {PrintToConsole(transaction)}
+                                <tr className={getTransactionRowStyle(transaction)} key={transaction.id}> {/* change key to be the id of the transaction */}
+                                <td><input style={transaction.isCC ? {} : {display:'none'}} type="checkbox" id={index} name="paid"/></td>
+                                <td><input type="checkbox" id={index} name="cleared"/></td>
+                                <td style={{ maxWidth: '70px' }}>{transaction.date.split(' ')[0]}</td>
+                                <td>{formatCurrency(transaction.totalAmount)}</td>
+                                <td>{transaction.merchant.name}</td>
+                                <td>{transaction.category}</td>
+                                <td>{transaction.paymentMethod.name}</td>
+                                <td>{transaction.description}</td>
+                                </tr>
+                                {transaction.childTransactions && transaction.childTransactions.map((child, i) => (
+                                    <tr className={getTransactionRowStyle(child)} key={i}> {/* change key to be the id of the transaction */}
+                                    <td></td>
+                                    <td></td>
+                                    <td style={{ maxWidth: '70px' }}><img src={DownRightArrow} alt="My SVG" width="100" height="20" /></td>
+                                    <td>{formatCurrency(child.totalAmount)}</td>
+                                    <td>{child.merchant.name}</td>
+                                    <td>{child.category}</td>
+                                    <td>{transaction.paymentMethod.name}</td>
+                                    <td>{child.description}</td>
+                                    </tr>
+                                ))}
+                            </React.Fragment>
                         ))}
-                    </React.Fragment>
-                ))}
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
