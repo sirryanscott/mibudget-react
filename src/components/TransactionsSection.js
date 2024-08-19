@@ -8,6 +8,7 @@ import NewIncomeTransactionModal from "../modals/NewIncomeTransactionModal";
 import NewBankTransferModal from "../modals/NewBankTransferModal";
 import { fetchTransactionsForUser } from "../api";
 import { MerchantContext } from "../GlobalStateContext/MerchantStateProvider";
+import DownRightArrow from "../images/down-right-arrow.svg";
 
 function TransactionsSection() {
     const { selectedMerchant, setSelectedMerchant } = useContext(MerchantContext);
@@ -174,7 +175,7 @@ function TransactionsSection() {
                         <tr className={getTransactionRowStyle(transaction)} key={transaction.id}> {/* change key to be the id of the transaction */}
                            <td><input style={transaction.isCC ? {} : {display:'none'}} type="checkbox" id={index} name="paid"/></td>
                            <td><input type="checkbox" id={index} name="cleared"/></td>
-                           <td>{transaction.date}</td>
+                           <td style={{ maxWidth: '70px' }}>{transaction.date.split(' ')[0]}</td>
                            <td>{formatCurrency(transaction.totalAmount)}</td>
                            <td>{transaction.merchant.name}</td>
                            <td>{transaction.category}</td>
@@ -185,11 +186,11 @@ function TransactionsSection() {
                             <tr className={getTransactionRowStyle(child)} key={i}> {/* change key to be the id of the transaction */}
                                <td></td>
                                <td></td>
-                               <td></td>
+                               <td style={{ maxWidth: '70px' }}><img src={DownRightArrow} alt="My SVG" width="100" height="20" /></td>
                                <td>{formatCurrency(child.totalAmount)}</td>
                                <td>{child.merchant.name}</td>
                                <td>{child.category}</td>
-                               <td>{child.account}</td>
+                               <td>{transaction.paymentMethod.name}</td>
                                <td>{child.description}</td>
                             </tr>
                         ))}

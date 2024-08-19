@@ -8,6 +8,10 @@
     border-radius: 50%;
 }
 
+.top-level-transaction-modal{
+  overflow-y: auto;
+}
+
 .new-transaction-modal {
   display: flex;
   flex-direction: column;

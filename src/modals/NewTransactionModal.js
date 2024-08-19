@@ -136,6 +136,8 @@ function NewTransactionModal({transactions}){
                 return newMap;
             });
         }
+        clearItemFields()
+        clearItemTotals()
     }
 
     const calculateTotals = (unitPrice, taxRate, quantity, discount) => {
@@ -504,7 +506,7 @@ function NewTransactionModal({transactions}){
     }
 
     return (
-        <div>
+        <div className="top-level-transaction-modal">
             <div>
                 {isNewMerchantModalOpen && (
                 <Modal 
@@ -561,7 +563,7 @@ function NewTransactionModal({transactions}){
                                 onChange={handleItemChange}
                                 onCreateOption={handleItemCreate}
                                 options={selectableItems}
-                                placeholder={ItemPlaceholder}
+                                placeholder={ItemPlaceholder.label}
                                 isSearchable
                                 styles={customStyles}
                                 />
@@ -575,7 +577,7 @@ function NewTransactionModal({transactions}){
                                     onChange={handleCommonNameChange}
                                     onCreateOption={handleCommonNameCreate}
                                     options={commonNames}
-                                    placeholder={CommonNamePlaceholder}
+                                    placeholder={CommonNamePlaceholder.label}
                                     isSearchable
                                     styles={customStyles}
                                 />

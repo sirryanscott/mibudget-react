@@ -79,7 +79,7 @@ function NewMerchantModal(
                             <CreatableSelect
                                 id="taxCategory"
                                 options={taxCategories}
-                                placeholder={TaxCategoryPlaceholder}
+                                placeholder={TaxCategoryPlaceholder.label}
                                 isSearchable
                                 styles={customStyles}
                                 onChange={handleTaxCategoryChange}
