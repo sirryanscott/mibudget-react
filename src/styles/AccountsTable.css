@@ -18,7 +18,7 @@ background-color: #ffffff; /* White Background */
 .account-item h3 {
   margin: 0 0 0px;
   font-size: 1em;
-   color: #ffffff; /* Primary Blue Color */
+   color: #ffffff; 
    background-color: #007bff;
    padding:3px;
 }

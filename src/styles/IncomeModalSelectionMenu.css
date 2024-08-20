@@ -1,0 +1,30 @@
+.income-modal-selection-menu {
+    display: inline-block;
+}
+
+.dropdown-menu {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    margin-top: 10px;
+}
+
+.dropdown-menu button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: transparent;
+    border: 1px solid black;
+    border:none;
+    text-align: left;
+    cursor: pointer;
+    color: #6c757d;
+    margin:0px;
+}
+
+.dropdown-menu button:hover {
+    background-color: #f0f0f0;
+}

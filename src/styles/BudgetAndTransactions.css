@@ -1,6 +1,13 @@
 h1 {
   margin-bottom: 0px;
 }
+
+.transaction-header-and-button{
+  display: flex;
+  justify-content: center;
+  color:orange;
+}
+
 .main-container {
   display: flex;
   flex-direction: row;

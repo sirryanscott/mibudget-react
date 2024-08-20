@@ -1,26 +1,14 @@
 import React, { useState, useEffect, useContext } from "react";
 import { formatCurrency } from "../utils/FormatCurrency";
 import "../styles/BudgetAndTransactions.css"
-import Modal from "../modals/AddModal";
-import CreatableSelect from 'react-select/creatable';
-import NewTransactionModal from "../modals/NewTransactionModal";
-import NewIncomeTransactionModal from "../modals/NewIncomeTransactionModal";
-import NewBankTransferModal from "../modals/NewBankTransferModal";
 import { fetchTransactionsForUser } from "../api";
-import { MerchantContext } from "../GlobalStateContext/MerchantStateProvider";
 import DownRightArrow from "../images/down-right-arrow.svg";
+import IncomeModalSelectionMenu from "./IncomeModalSelectionMenu";
 
 function TransactionsSection() {
-    const { selectedMerchant, setSelectedMerchant } = useContext(MerchantContext);
-    const [selectedContent, setSelectedContent] = useState({value: 'newTransaction', label: 'New Transaction'});
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [transactions, setTransactions] = useState([])
-    const [content, setContent] = useState([
-        { value: 'newTransaction', label: 'New Transaction' },
-        { value: 'newIncome', label: 'New Income Transaction' },
-        { value: 'accountTransfer', label: 'New Account Transfer' }
-    ])
 
     useEffect(() => {
         const getTransactions = async () => {
@@ -42,16 +30,6 @@ function TransactionsSection() {
         return <p>Loading...</p>;
     }
 
-
-    const handleChange = (event) => {
-        setSelectedContent(event);
-    };
-
-    const handleOpenModal = () => {
-        setIsModalOpen(true);
-        setSelectedContent({value: 'newTransaction', label: 'New Transaction'});
-    };
-
     const handleCloseModal = () => {
         setIsModalOpen(false);
     };
@@ -60,66 +38,6 @@ function TransactionsSection() {
         setTransactions(newTransactions)
         handleCloseModal()
     }
-
-    const renderContent = () => {
-        console.log(selectedContent)
-        switch (selectedContent.value) {
-          case 'newTransaction':
-            return (
-                <NewTransactionModal transactions={transactions}/>
-            );
-          case 'newIncome':
-            return (
-                <NewIncomeTransactionModal transactions={transactions}/>
-            );
-          case 'accountTransfer':
-            return (
-                <NewBankTransferModal transactions={transactions}/>
-            );
-          default:
-            return <p>Please select an option to see the content.</p>;
-        }
-    };
-
-    const getModalStyle = () => {
-        switch (selectedContent.value) {
-            case 'newTransaction':
-                return { 
-                    backgroundColor: 'white',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    position: 'relative',
-                    maxHeight: '90%',
-                    overflowY: 'auto',
-                    display:'flex',
-                    flexDirection:'column',
-                    justifyContent:'center',
-                    alignItems: 'center',
-                };
-            case 'newIncome':
-            case 'accountTransfer':
-                return { 
-                    backgroundColor: 'white',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    position: 'relative',
-                    maxHeight: '90%',
-                    display:'flex',
-                    flexDirection:'column',
-                    justifyContent:'center',
-                    alignItems: 'center',
-                };
-            default:
-                return {
-                    backgroundColor: 'white',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    position: 'relative',
-                    width: '35%',
-                    maxHeight: '90%',
-                };
-        }
-    };    
 
     const getTransactionRowStyle = (transaction) => {
         if(transaction.category === 'Bank Transfer')
@@ -139,24 +57,9 @@ function TransactionsSection() {
 
     return (
         <div>
-            <h3>
+            <h3 style={{display:'flex',justifyContent:'center'}}>
                 Transactions
-                <button className="new-item" onClick={handleOpenModal}>+</button>
-                  {isModalOpen && (
-                  <Modal 
-                      modalStyle={getModalStyle()}
-                      onClose={handleCloseModal}
-                      onUpdateItems={handleUpdateTransactions}
-                  >
-                    <CreatableSelect
-                        className="transaction-dropdown"
-                        value={selectedContent}
-                        onChange={handleChange}
-                        options={content}
-                    />
-                          {renderContent()}
-                  </Modal>
-                )}
+                <IncomeModalSelectionMenu transactions={transactions} handleUpdateTransactions={handleUpdateTransactions} isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}/>
             </h3>
             <div className="transactions-container">
                 <table >
