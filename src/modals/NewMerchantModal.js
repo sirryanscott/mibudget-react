@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useContext } from 'react';
 import CreatableSelect from 'react-select/creatable';
-import { fetchCategoriesForUser, createMerchantForUser } from "../api";
+import { createMerchantForUser } from "../api";
 import { convertObjectsToOptions } from '../utils/ConvertToOptions';
 import CategorySelector from '../components/DropdownComponents/CategorySelector';
 import { MerchantContext } from '../GlobalStateContext/MerchantStateProvider';

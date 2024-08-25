@@ -1,19 +1,24 @@
 import './App.css';
-import AccountsList from './components/AccountsList';
-import BudgetAndTransactions from './components/BudgetAndTransactions';
+import { BrowserRouter as Router, Route, Switch, Routes } from 'react-router-dom';
+import ZipcodeAndTaxRatesUpdater from './pages/ZipcodeAndTaxRatesUpdater';
 import { CategoryProvider } from './GlobalStateContext/CategoryStateProvider';
 import { MerchantProvider } from './GlobalStateContext/MerchantStateProvider';
+import Budget from './pages/Budget';
 
 function App() {
   return (
-    <MerchantProvider>
-      <CategoryProvider>
-        <div className="App">
-          <AccountsList/>
-          <BudgetAndTransactions/>
-        </div>
-      </CategoryProvider>
-    </MerchantProvider>
+    <div className="App">
+      <MerchantProvider>
+        <CategoryProvider>
+            <Router>
+              <Routes>
+                <Route path="/" element={<Budget/>} />
+                <Route path="/zipcode" element={<ZipcodeAndTaxRatesUpdater/>} />
+              </Routes>
+            </Router>
+        </CategoryProvider>
+      </MerchantProvider>
+    </div>
   );
 }
 

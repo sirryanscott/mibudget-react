@@ -42,3 +42,8 @@ export const createCategoryForUser = async (userId, category) => {
     const response = await axios.post(`${API_BASE_URL}/user/${userId}/categories`, category);
     return response.data;
 }
+
+export const updateTaxRates = async (taxRatesFile) => {
+    const response = await axios.post(`${API_BASE_URL}/taxRates`, taxRatesFile);
+    return response.data;
+}

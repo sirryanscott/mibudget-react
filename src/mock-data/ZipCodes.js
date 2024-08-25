@@ -367,3 +367,13 @@ function InitialZipCodesAndRates() {
 }
 
 export default InitialZipCodesAndRates;
+
+
+// TODO some sort of tool that loads the current tax rates from the db 
+// The new list or the list from the db is saved into a map and then we iterate over
+// the other list. if a rate has changed then we update the db with the new rate
+// there might be a way to do a bulk update if i save the changed rates into a 
+// separate list and then update the db with the new rates.
+// if the db is empty then we can just load the rates from the list into the db
+// ideally this tool would be a utility that can be run from the ui which would 
+// have a field to upload a csv file with the new rates.

@@ -1,7 +1,6 @@
 // TODO: Add
 //   Edit item
 //   Delete item
-// maybe a function for clearing selections
 
 import {useState, useEffect, useContext} from "react"
 import { formatCurrency } from "../utils/FormatCurrency"

@@ -1,7 +1,7 @@
 import {useState, useEffect, useContext} from "react"
 import "../styles/NewIncomeTransactionModal.css"
 import TaxCategories from "../mock-data/taxCategories";
-import {createTransactionForUser, fetchMerchantsForUser} from "../api";
+import {createTransactionForUser} from "../api";
 import Modal from "../modals/AddModal";
 import NewMerchantModal from "./NewMerchantModal";
 import AccountSelector from "../components/DropdownComponents/AccountSelector";
