@@ -31,7 +31,7 @@ function AccountsList(){
         <div className="account-container">
             {accounts.map((account, index) => (
                 <div key={index} className="account-item">
-                    <h3>{account.nickname}</h3>
+                    <h3>{account.name}</h3>
                     <p><b>Current Balance: {formatCurrency(account.currentBalance)}</b></p>
                     <p><i>Pending Amount: {formatCurrency(account.pendingBalance)}</i></p>
                     <p className={account.balanceAfterPending < 0 ? 'negative' : ''}>

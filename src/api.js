@@ -47,3 +47,37 @@ export const updateTaxRates = async (taxRatesFile) => {
     const response = await axios.post(`${API_BASE_URL}/taxRates`, taxRatesFile);
     return response.data;
 }
+
+export const fetchStates = async () => {
+    const response = await axios.get(`${API_BASE_URL}/states`);
+    return response.data;
+}
+
+export const fetchStateTaxCategoryTypes = async () => {
+    const response = await axios.get(`${API_BASE_URL}/states/taxCategoryTypes`);
+    return response.data;
+}
+
+export const upsertStateTaxCategoryType = async (stateTaxCategoryType) => {
+    const response = await axios.post(`${API_BASE_URL}/states/taxCategoryTypes`, stateTaxCategoryType);
+    return response.data;
+}
+
+export const fetchStatesAndTaxCategories = async () => {
+    const response = await axios.get(`${API_BASE_URL}/states`);
+    return response.data;
+}
+
+export const fetchZipcodesAndTaxRates = async (state) => {
+    const response = await axios.get(`${API_BASE_URL}/taxRates`, {
+        params: {
+            state
+        }
+    });
+    return response.data;
+}
+
+export const fetchTaxCategories = async () => {
+    const response = await axios.get(`${API_BASE_URL}/taxCategoryTypes`);
+    return response.data;
+}

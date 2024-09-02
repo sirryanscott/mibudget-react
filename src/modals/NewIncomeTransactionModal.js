@@ -1,7 +1,7 @@
 import {useState, useEffect, useContext} from "react"
 import "../styles/NewIncomeTransactionModal.css"
 import TaxCategories from "../mock-data/taxCategories";
-import {createTransactionForUser} from "../api";
+import {createTransactionForUser, fetchTaxCategories} from "../api";
 import Modal from "../modals/AddModal";
 import NewMerchantModal from "./NewMerchantModal";
 import AccountSelector from "../components/DropdownComponents/AccountSelector";
@@ -13,7 +13,7 @@ import { AccountPlaceholder, BudgetCategoryPlaceholder, MerchantPlaceholder, Tax
 
 function NewIncomeTransactionModal({transactions}){
     const {selectedMerchant, setSelectedMerchant} = useContext(MerchantContext)
-    const [taxCategories, setTaxCategories] = useState(TaxCategories)
+    const [taxCategories, setTaxCategories] = useState(null)
 
     const [transactionDate, setTransactionDate] = useState('')
     const [description, setDescription] = useState('')
@@ -39,6 +39,19 @@ function NewIncomeTransactionModal({transactions}){
             }
         }
     }, [selectedMerchant]);
+
+    useEffect(() => {
+        const loadTaxCategories = async (event) => {
+            try {
+                const response = await fetchTaxCategories()
+                setTaxCategories(convertObjectsToOptions(response))
+            } catch (error) {
+                console.error('Error fetching tax categories:', error);
+            }
+        }
+
+        loadTaxCategories()
+    }, [])
 
     const addTransaction = async (event) => {
         event.preventDefault()

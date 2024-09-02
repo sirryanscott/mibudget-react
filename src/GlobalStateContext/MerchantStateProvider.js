@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState } from 'react';
 import { MerchantPlaceholder } from '../constants/Placeholders';
 
 export const MerchantContext = createContext();
