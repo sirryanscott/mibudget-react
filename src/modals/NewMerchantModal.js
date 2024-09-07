@@ -1,37 +1,38 @@
-import React, { useContext } from 'react';
-import CreatableSelect from 'react-select/creatable';
+import React, { useContext, useEffect } from 'react';
 import { createMerchantForUser } from "../api";
 import { convertObjectsToOptions } from '../utils/ConvertToOptions';
 import CategorySelector from '../components/DropdownComponents/CategorySelector';
 import { MerchantContext } from '../GlobalStateContext/MerchantStateProvider';
-import { TaxCategoryPlaceholder } from '../constants/Placeholders';
+import TaxCategorySelector from '../components/DropdownComponents/TaxCategorySelector';
 
 function NewMerchantModal(
     {
         newMerchantName, 
         setMerchantName,
-        taxCategories, 
         selectedBudgetCategory, 
         selectedTaxCategory, 
+        setSelectedTaxCategory,
         setIsNewMerchantModalOpen, 
         setSelectedMerchant,
         setSelectedBudgetCategory,
-        openMerchantCreateModal,
     }) {
     
     const { setMerchants } = useContext(MerchantContext);
 
-    const handleTaxCategoryChange = (selectedOption) => {
-        selectedTaxCategory = selectedOption
-    };
-    
+    useEffect(() => {
+        if (selectedTaxCategory === null || JSON.stringify(selectedTaxCategory) === '{}') {
+            return;
+        }
+        setSelectedTaxCategory(selectedTaxCategory)
+    }, [selectedTaxCategory])
+
     const handleMerchantCreate = async(event) => {
         event.preventDefault()
 
         let merchant = {
             "name": newMerchantName,
             "budgetCategory": selectedBudgetCategory.value,
-            "taxCategory": selectedTaxCategory.value.name
+            "taxCategoryType": selectedTaxCategory.value,
         }
         try {
             const response = await createMerchantForUser(1, merchant);
@@ -74,18 +75,7 @@ function NewMerchantModal(
                             <input id="merchantName" type="text" value={newMerchantName} onChange={handleMerchantNameChange}></input>
                         </div>
                         <CategorySelector id="budgetCategory" selectedCategory={selectedBudgetCategory} setSelectedCategory={setSelectedBudgetCategory} isNewMerchantModalOpen={false}/>
-                        <div className="form-group">
-                            <label htmlFor="taxCategory">Tax Category:</label>
-                            <CreatableSelect
-                                id="taxCategory"
-                                options={taxCategories}
-                                placeholder={TaxCategoryPlaceholder.label}
-                                isSearchable
-                                styles={customStyles}
-                                onChange={handleTaxCategoryChange}
-                                onCreateOption={openMerchantCreateModal}
-                            />
-                        </div>
+                        <TaxCategorySelector id="taxCategory" selectedTaxCategory={selectedTaxCategory} setSelectedTaxCategory={setSelectedTaxCategory} isNewMerchantModalOpen={false}/>
                         <div>
                             <button className='new-merchant-button' onClick={handleMerchantCreate}>Add Merchant</button>
                         </div>

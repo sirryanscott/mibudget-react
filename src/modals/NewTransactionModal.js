@@ -7,7 +7,6 @@ import { formatCurrency } from "../utils/FormatCurrency"
 import CreatableSelect from 'react-select/creatable';
 import "../styles/NewTransactionModal.css"
 import initialItems from "../mock-data/mockItems";
-import TaxCategories from "../mock-data/taxCategories";
 import CommonNames from "../mock-data/commonNames";
 import Modal from "../modals/AddModal";
 import { convertObjectsToOptions, convertStateObjectsToOptions } from "../utils/ConvertToOptions";
@@ -19,7 +18,8 @@ import { MerchantContext } from "../GlobalStateContext/MerchantStateProvider";
 import { CategoryContext } from "../GlobalStateContext/CategoryStateProvider";
 import { AccountPlaceholder, BudgetCategoryPlaceholder, CommonNamePlaceholder, ItemPlaceholder, MerchantPlaceholder, StatePlaceholder, TaxCategoryPlaceholder, ZipCodePlaceholder } from "../constants/Placeholders";
 import ZipCodeSelector from "../components/DropdownComponents/ZipCodeSelector";
-import { fetchStates, fetchTaxCategories, fetchZipcodesAndTaxRates } from "../api";
+import { fetchStates, fetchTaxCategories } from "../api";
+import TaxCategorySelector from "../components/DropdownComponents/TaxCategorySelector";
 
 function NewTransactionModal({transactions}){
     const {merchants, selectedMerchant, setSelectedMerchant} = useContext(MerchantContext)
@@ -75,6 +75,17 @@ function NewTransactionModal({transactions}){
     }, [selectedMerchant])
 
     useEffect(() => {
+        if (selectedTaxCategory === null || JSON.stringify(selectedTaxCategory) === '{}') {
+            clearItemTotals()
+            return;
+        }
+        console.log('selectedTaxCategory:', selectedTaxCategory)
+        let taxRate = setTaxRateFromTaxCategory(selectedTaxCategory.value, selectedZipCode)
+        console.log('taxRate:', taxRate)
+        calculateTotals(itemUnitPrice, taxRate, itemQuantity, itemDiscount)
+    }, [selectedTaxCategory])
+
+    useEffect(() => {
         const loadStates = async () => {
             try {
                 const response = await fetchStates()
@@ -95,19 +106,6 @@ function NewTransactionModal({transactions}){
         let taxRate = setTaxRateFromTaxCategory(selectedTaxCategory.value, selectedZipCode)
         calculateTotals(itemUnitPrice, taxRate, itemQuantity, itemDiscount)
     }, [selectedZipCode])
-
-    useEffect(() => {
-        const loadTaxCategories = async () => {
-            try {
-                const response = await fetchTaxCategories()
-                setTaxCategories(convertObjectsToOptions(response))
-            } catch (error) {
-                console.error('Error fetching tax categories:', error);
-            }
-        }
-
-        loadTaxCategories()
-    }, [])
 
     const handleStateChange = (newValue) => {
         setSelectedState(newValue)
@@ -199,6 +197,7 @@ function NewTransactionModal({transactions}){
     }
 
     const handleItemChange = (selectedOption) => {
+        console.log('selectedOption:', selectedOption)
         let itemCommonName = selectedOption.value.commonName
         for(let i = 0; i < commonNames.length; i++){
             if(commonNames[i].value === itemCommonName) {
@@ -356,17 +355,6 @@ function NewTransactionModal({transactions}){
         setSelectedCommonName(commonName)
     }
 
-    const handleTaxCategoryChange = (taxCategory) => {
-        setSelectedTaxCategory(taxCategory)
-
-        selectedItem.value.taxCategory = taxCategory.value
-        setSelectedItem(selectedItem)
-
-        let taxRate = setTaxRateFromTaxCategory(taxCategory.value, selectedZipCode)
-
-        calculateTotals(itemUnitPrice, taxRate, itemQuantity, itemDiscount)
-    }
-
     const handleTaxRateChange = (e) => {
         let taxRate = e.target.value
         setItemTaxRate(taxRate)
@@ -419,14 +407,15 @@ function NewTransactionModal({transactions}){
         if(!selectedItemInList){
             setSelectedItem(ItemPlaceholder)
 
-            if(selectedMerchant.value.taxCategory === undefined){
+            if(selectedMerchant.value.taxCategoryType === undefined){
                 setSelectedTaxCategory(TaxCategoryPlaceholder)
                 setItemTaxRate("")
             } else{
-                if(selectedMerchant.value.taxCategory.id === 0){
+                if(selectedMerchant.value.taxCategoryType.id === 0){
                     setSelectedTaxCategory(TaxCategoryPlaceholder)
                 } else{
-                    let taxCategory = selectedMerchant.value.taxCategory
+                    let taxCategory = selectedMerchant.value.taxCategoryType
+                    console.log('taxCategory:', taxCategory)
                     setSelectedTaxCategory(convertObjectsToOptions([taxCategory])[0])
 
                     setTaxRateFromTaxCategory(taxCategory, selectedZipCode)
@@ -544,12 +533,11 @@ function NewTransactionModal({transactions}){
                     <NewMerchantModal 
                         newMerchantName={newMerchantName} 
                         setMerchantName={setNewMerchantName}
-                        taxCategories={taxCategories}
                         selectedBudgetCategory={selectedBudgetCategory}
                         selectedTaxCategory={selectedTaxCategory}
+                        setSelectedTaxCategory={setSelectedTaxCategory}
                         setSelectedMerchant={setSelectedMerchant}
                         setSelectedBudgetCategory={setSelectedBudgetCategory}
-                        setIsNewMerchantModalOpen={setIsNewMerchantModalOpen}
                     />
                 </Modal>
                 )}
@@ -612,19 +600,7 @@ function NewTransactionModal({transactions}){
                                     />
                                 </div>
                                 <CategorySelector id="budgetCategory" selectedCategory={selectedBudgetCategory} setSelectedCategory={setSelectedBudgetCategory} isNewMerchantModalOpen={isNewMerchantModalOpen}/>
-                                <div className="form-group">
-                                    <label htmlFor="taxCategory">Tax Category:</label>
-                                    <CreatableSelect
-                                        id="taxCategory"
-                                        className={isNewMerchantModalOpen ? "hide-parent-modal" : ""}
-                                        value={selectedTaxCategory}
-                                        onChange={handleTaxCategoryChange}
-                                        options={taxCategories}
-                                        placeholder={TaxCategoryPlaceholder.label}
-                                        isSearchable
-                                        styles={customStyles}
-                                    />
-                                </div>
+                                <TaxCategorySelector id="taxCategory" selectedTaxCategory={selectedTaxCategory} setSelectedTaxCategory={setSelectedTaxCategory} isNewMerchantModalOpen={isNewMerchantModalOpen}/>
                                 <div className="form-group">
                                     <label htmlFor="taxRate">Tax Rate:</label>
                                     <input id="taxRate" type="text" value={itemTaxRate} onChange={handleTaxRateChange}></input>
