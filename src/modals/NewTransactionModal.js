@@ -37,7 +37,7 @@ function NewTransactionModal({transactions}){
     const [selectedItem, setSelectedItem] = useState(ItemPlaceholder)
     const [selectedAccount, setSelectedAccount] = useState(AccountPlaceholder)
     const [selectedState, setSelectedState] = useState({label:"UT", value:"UT"})
-    const [selectedZipCode, setSelectedZipCode] = useState({label:84005, value:{zipCode:84005,taxRegionName:"UTAH CO TR",taxRate:0.0735}})
+    const [selectedZipCode, setSelectedZipCode] = useState({label:84005, value:{zipCode:84005,nt:0.00,foodTaxRate:0.03,restaurantTaxRate:0.0835}})
     const [selectedTaxCategory, setSelectedTaxCategory] = useState(TaxCategoryPlaceholder)
     const [selectedBudgetCategory, setSelectedBudgetCategory] = useState(BudgetCategoryPlaceholder)
     const [selectedCommonName, setSelectedCommonName] = useState(CommonNamePlaceholder)
@@ -79,9 +79,7 @@ function NewTransactionModal({transactions}){
             clearItemTotals()
             return;
         }
-        console.log('selectedTaxCategory:', selectedTaxCategory)
         let taxRate = setTaxRateFromTaxCategory(selectedTaxCategory.value, selectedZipCode)
-        console.log('taxRate:', taxRate)
         calculateTotals(itemUnitPrice, taxRate, itemQuantity, itemDiscount)
     }, [selectedTaxCategory])
 
@@ -367,7 +365,7 @@ function NewTransactionModal({transactions}){
         if(zipcode.value.estimatedCombinedRate !== undefined) {
             useTaxRate = zipcode.value.estimatedCombinedRate
         }
-            
+
         switch (taxCategory.name){
             case "NT":
                 useTaxRate = zipcode.value.nt
