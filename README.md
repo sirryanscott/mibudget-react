@@ -1,3 +1,7 @@
+# MiBudget
+
+Next-level budgeting. You can keep track of all items that you purchase instead of just the transactions. 
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
